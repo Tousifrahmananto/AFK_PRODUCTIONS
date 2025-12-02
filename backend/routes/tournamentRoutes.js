@@ -31,7 +31,10 @@ const {
   deleteMatchMedia,
 } = require("../controllers/tournamentController");
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 // Public list
 router.get("/", getAllTournaments);
 
