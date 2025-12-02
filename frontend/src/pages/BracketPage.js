@@ -1,5 +1,5 @@
 // src/pages/BracketPage.js
-import React, { useContext, useEffect, useState, useMemo } from "react";
+import { useContext, useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import {
@@ -47,7 +47,7 @@ export default function BracketPage() {
     };
 
     // Calculate vertical spacing for bracket tree
-    const getMatchSpacing = (roundIndex, totalRounds) => {
+    const getMatchSpacing = (roundIndex) => {
         const baseSpacing = 60;
         const multiplier = Math.pow(2, roundIndex);
         return baseSpacing * multiplier;
@@ -131,24 +131,12 @@ export default function BracketPage() {
                 <div style={bracketLabel}>BRACKET</div>
             </div>
 
-<<<<<<< Updated upstream
-                {/* ===== Sponsor/Partner Ads (top area) ===== */}
-                <div style={adTopBox}>
-                    <AdSlot category="BracketTop" />
-                </div>
-
-                <div style={board}>
-                    {rounds.map((round, rIdx) => (
-                        <div key={rIdx} style={roundCol}>
-                            <div style={roundTitle}>Round {rIdx + 1}</div>
-=======
             <div style={bracketContainer}>
                 <div style={bracketTree}>
                     {rounds.map((round, rIdx) => {
-                        const spacing = getMatchSpacing(rIdx, rounds.length);
+                        const spacing = getMatchSpacing(rIdx);
                         const isLastRound = rIdx === rounds.length - 1;
                         const hasNextRound = rIdx < rounds.length - 1;
->>>>>>> Stashed changes
 
                         return (
                             <div key={rIdx} style={roundColumn}>
@@ -231,25 +219,6 @@ export default function BracketPage() {
     );
 }
 
-<<<<<<< Updated upstream
-/* -------------------- styles (local-only, no global bleed) ------------------- */
-const wrap = { minHeight: "100vh", background: "#0f1115", color: "#e8ecf2", padding: "24px 16px", display: "flex", justifyContent: "center" };
-const panel = { width: "100%", maxWidth: 1200, display: "grid", gap: 16 };
-const board = { display: "grid", gridAutoFlow: "column", gridAutoColumns: "minmax(280px, 1fr)", gap: 16, overflowX: "auto", paddingBottom: 4 };
-const roundCol = { display: "grid", gap: 16, minWidth: 280 };
-const roundTitle = { fontSize: 16, fontWeight: 700, color: "#a8b0bf", textAlign: "center" };
-const matchCard = { background: "#151922", border: "1px solid #232838", borderRadius: 12, padding: 12, display: "grid", gap: 8 };
-const matchHeader = { fontSize: 12, color: "#8b94a7", textTransform: "uppercase", letterSpacing: 0.5 };
-const slot = { padding: "10px 12px", borderRadius: 10, background: "#0f1320", border: "1px solid #232838" };
-const winnerLine = { marginTop: 4, fontSize: 14, color: "#a8f0b0" };
-const btnRow = { display: "flex", gap: 8, marginTop: 6 };
-const btnWin = { padding: "9px 12px", borderRadius: 10, background: "#1a7f30", color: "#fff", border: "0", cursor: "pointer" };
-const btnEdit = { marginTop: 6, padding: "8px 10px", borderRadius: 10, background: "#232a41", color: "#e8ecf2", border: "1px solid #2e3753", cursor: "pointer" };
-
-/* --- added minimal ad styles --- */
-const adTopBox = { marginTop: 8, marginBottom: 8 };
-const adBottomBox = { marginTop: 12, marginBottom: 4 };
-=======
 /* -------------------- Tournament Bracket Styles ------------------- */
 const wrap = {
     minHeight: "100vh",
@@ -405,15 +374,3 @@ const adminBtn = {
     transition: "all 0.2s ease",
     color: "#6ab4ff"
 };
-
-const connectorLine = {
-    position: "absolute",
-    right: "-40px",
-    top: "50%",
-    width: "40px",
-    height: "2px",
-    background: "#3a4556",
-    transform: "translateY(-50%)",
-    zIndex: 0
-};
->>>>>>> Stashed changes
