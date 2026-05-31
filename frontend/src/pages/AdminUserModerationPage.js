@@ -1,8 +1,7 @@
-// src/pages/AdminUserModerationPage.js
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import {
-    adminListUsers,        // uses /users/moderation under the hood now
+    adminListUsers,
     adminBanUser,
     adminUnbanUser,
 } from "../services/userService";
@@ -41,17 +40,13 @@ export default function AdminUserModerationPage() {
 
     useEffect(() => {
         if (token && isAdmin) load();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token, isAdmin]);
 
-    // re-query when filters change
     useEffect(() => {
         if (!loading && isAdmin) load();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [q, role, onlyBanned]);
 
     const filtered = useMemo(() => {
-        // server already filters; this keeps UI snappy if you type quickly
         const term = q.trim().toLowerCase();
         return (users || []).filter((u) => {
             if (role !== "All" && u.role !== role) return false;
@@ -112,7 +107,6 @@ export default function AdminUserModerationPage() {
                             <option>Admin</option>
                             <option>Player</option>
                             <option>TeamManager</option>
-                            {/* Sponsor / Partner are excluded in backend */}
                         </select>
                         <label style={{ display: "flex", alignItems: "center", gap: 6, color: "#9aa3b2" }}>
                             <input

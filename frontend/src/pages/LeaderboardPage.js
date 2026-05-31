@@ -1,4 +1,3 @@
-// src/pages/LeaderboardPage.js
 import React, { useEffect, useState } from "react";
 import { getPlayersLeaderboard } from "../services/leaderboardService";
 

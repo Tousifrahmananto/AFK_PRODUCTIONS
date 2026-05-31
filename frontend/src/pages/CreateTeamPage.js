@@ -14,13 +14,12 @@ export default function CreateTeamPage() {
     const [maxMembers, setMaxMembers] = useState(5);
     const [visibility, setVisibility] = useState("public");
 
-    const [captainId, setCaptainId] = useState("");          
-    const [initialMembersCSV, setInitialMembersCSV] = useState(""); 
+    const [captainId, setCaptainId] = useState("");
+    const [initialMembersCSV, setInitialMembersCSV] = useState("");
 
     const navigate = useNavigate();
     const API = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
-    // Only TeamManagers may access
     if (user?.role !== "TeamManager") {
         return <div className="text-center mt-10">Access denied.</div>;
     }
@@ -46,7 +45,6 @@ export default function CreateTeamPage() {
                     maxMembers: Number(maxMembers),
                     visibility,
                     captainId: captainId || undefined,
-                    // initialMembers
                 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -167,13 +165,6 @@ export default function CreateTeamPage() {
                         placeholder="Captain UserId (leave empty to set yourself)"
                         className="input"
                     />
-
-                    {/* <input
-                        value={initialMembersCSV}
-                        onChange={(e) => setInitialMembersCSV(e.target.value)}
-                        placeholder="Initial Member UserIds (comma-separated)"
-                        className="input"
-                    /> */}
 
                     <button type="submit" className="btn w-full">Create</button>
                 </form>

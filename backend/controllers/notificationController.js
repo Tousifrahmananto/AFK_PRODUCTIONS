@@ -1,4 +1,3 @@
-// backend/controllers/notificationController.js
 const Notification = require("../models/Notification");
 
 async function listMine(req, res) {

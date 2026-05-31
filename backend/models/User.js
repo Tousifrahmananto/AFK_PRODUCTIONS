@@ -1,4 +1,3 @@
-// backend/models/User.js
 const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema(
@@ -14,20 +13,16 @@ const UserSchema = new mongoose.Schema(
             index: true,
         },
 
-        // Team reference (optional)
         team: { type: mongoose.Schema.Types.ObjectId, ref: "Team", default: null },
 
-        // --- Moderation flags (soft-ban) ---
-        // keep both for backward compatibility
         banned: { type: Boolean, default: false, index: true },
-        isBanned: { type: Boolean, default: false }, // if older docs used this
+        isBanned: { type: Boolean, default: false },
         bannedAt: { type: Date, default: null },
         bannedReason: { type: String, default: "" },
     },
     { timestamps: true }
 );
 
-// Normalize "isBanned" for older docs
 UserSchema.virtual("effectiveBanned").get(function () {
     return !!(this.banned || this.isBanned);
 });

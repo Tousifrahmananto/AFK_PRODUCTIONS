@@ -26,7 +26,7 @@ export default function NotificationsPage() {
     }
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [token]);
+  useEffect(() => { load(); }, [token]);
 
   const onRead = async (id) => {
     try { await markRead(id, token); await load(); } catch {}

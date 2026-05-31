@@ -1,4 +1,3 @@
-// src/pages/AdminMatchStatsPage.js
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
@@ -10,7 +9,7 @@ import {
   getUserProfile,
 } from "../services/tournamentService";
 
-const CAP_PER_TEAM = 5; // cap to 5 players per side (total 10)
+const CAP_PER_TEAM = 5;
 
 export default function AdminMatchStatsPage() {
   const { token, user } = useContext(AuthContext);
@@ -26,16 +25,12 @@ export default function AdminMatchStatsPage() {
 
   const [meta, setMeta] = useState({ map: "", notes: "", p1Score: 0, p2Score: 0 });
 
-  // rows = array of stat rows for each userId
   const [rows, setRows] = useState([]);
 
-  // cache of userId -> display name
   const [namesMap, setNamesMap] = useState({});
 
-  // prevent repeated auto-fill loops
   const autoFilledRef = useRef(false);
 
-  // query params (?r=&m=)
   useEffect(() => {
     const sp = new URLSearchParams(location.search);
     const r = Number(sp.get("r"));
@@ -44,15 +39,13 @@ export default function AdminMatchStatsPage() {
     if (!Number.isNaN(m) && m >= 0) setMatchIndex(m);
   }, [location.search]);
 
-  // load bracket shell
   useEffect(() => {
     (async () => {
       try {
-        const br = await getBracket(tournamentId, token); // { title, bracketData }
+        const br = await getBracket(tournamentId, token);
         setTitle(br?.title || "");
         setRounds(br?.bracketData?.rounds || []);
       } catch {
-        // ignore
       } finally {
         setLoading(false);
       }
@@ -69,7 +62,6 @@ export default function AdminMatchStatsPage() {
   const p1Label = p1?.label || p1?.id || "P1";
   const p2Label = p2?.label || p2?.id || "P2";
 
-  // load existing saved stats (+ meta)
   useEffect(() => {
     (async () => {
       if (!token || !currentMatch) return;
@@ -100,7 +92,6 @@ export default function AdminMatchStatsPage() {
           }))
           : [];
 
-        // de-dup here too, in case saved had dupes
         const unique = [];
         const seen = new Set();
         for (const r of nextRows) {
@@ -111,7 +102,6 @@ export default function AdminMatchStatsPage() {
         }
         setRows(unique);
 
-        // allow auto-fill to run if there were no items
         autoFilledRef.current = unique.length > 0;
       } catch {
         setRows([]);
@@ -120,7 +110,6 @@ export default function AdminMatchStatsPage() {
     })();
   }, [token, tournamentId, roundIndex, matchIndex, currentMatch]);
 
-  // helper: make a blank row for a userId
   const blankRow = (uid) => ({
     userId: String(uid),
     kills: 0,
@@ -135,14 +124,12 @@ export default function AdminMatchStatsPage() {
     score: 0,
   });
 
-  // helper: add a user id row if not already present
   const addUserIfMissing = (uid) =>
     setRows((r) => {
       const exists = r.some((x) => String(x.userId) === String(uid));
       return exists ? r : [...r, blankRow(uid)];
     });
 
-  // fetch players for one participant (team or solo)
   const fetchParticipantUsers = async (participant) => {
     if (!participant) return [];
     if (participant.kind === "team") {
@@ -152,41 +139,34 @@ export default function AdminMatchStatsPage() {
         if (t?.captain) ids.push(t.captain._id || t.captain);
         (t?.members || []).forEach((m) => ids.push(m._id || m));
 
-        // unique & cap per team
         const uniq = Array.from(new Set(ids.map((x) => String(x)))).slice(0, CAP_PER_TEAM);
         return uniq;
       } catch {
         return [];
       }
     } else {
-      // solo
       return [String(participant.id)];
     }
   };
 
-  // AUTO-FILL from current match once per selection if there are no rows yet
   useEffect(() => {
     (async () => {
       if (!currentMatch) return;
-      if (autoFilledRef.current) return; // don't repeat
-      if (rows.length > 0) return; // respect existing rows
+      if (autoFilledRef.current) return;
+      if (rows.length > 0) return;
 
       const p1Users = await fetchParticipantUsers(p1);
       const p2Users = await fetchParticipantUsers(p2);
 
-      // cap sides and union (<=10)
       const all = [...new Set([...p1Users.slice(0, CAP_PER_TEAM), ...p2Users.slice(0, CAP_PER_TEAM)])];
 
       if (all.length > 0) {
-        // set exactly these rows to avoid creeping duplicates
         setRows(all.map(blankRow));
         autoFilledRef.current = true;
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentMatch, roundIndex, matchIndex]);
 
-  // manual button to re-fetch/add players (if rosters change)
   const loadPlayersFromMatch = async () => {
     const p1Users = await fetchParticipantUsers(p1);
     const p2Users = await fetchParticipantUsers(p2);
@@ -197,7 +177,6 @@ export default function AdminMatchStatsPage() {
       return;
     }
 
-    // dedupe against current rows, but never exceed the cap logic (this just adds missing)
     const toAdd = all.filter((uid) => !rows.some((r) => String(r.userId) === String(uid)));
     if (toAdd.length === 0) {
       alert("Players already loaded.");
@@ -206,7 +185,6 @@ export default function AdminMatchStatsPage() {
     setRows((r) => [...r, ...toAdd.map(blankRow)]);
   };
 
-  // Resolve names for any userIds present in rows
   useEffect(() => {
     (async () => {
       const uids = rows.map((r) => String(r.userId)).filter(Boolean);
@@ -216,7 +194,7 @@ export default function AdminMatchStatsPage() {
       const updates = {};
       for (const uid of need) {
         try {
-          const prof = await getUserProfile(uid, token); // expects { user: { username/name/... } }
+          const prof = await getUserProfile(uid, token);
           const name =
             prof?.user?.username ||
             prof?.user?.name ||
@@ -225,7 +203,7 @@ export default function AdminMatchStatsPage() {
             uid;
           updates[uid] = name;
         } catch {
-          updates[uid] = uid; // fallback
+          updates[uid] = uid;
         }
       }
       if (Object.keys(updates).length) {
@@ -261,7 +239,6 @@ export default function AdminMatchStatsPage() {
       return;
     }
     try {
-      // final dedupe just before save (safety)
       const uniqMap = new Map();
       for (const r of rows) {
         const uid = String(r.userId || "").trim();
@@ -311,7 +288,6 @@ export default function AdminMatchStatsPage() {
           <h2 style={{ margin: 0 }}>{title || "Tournament"}</h2>
         </div>
 
-        {/* Selector */}
         <div style={card}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <div>
@@ -345,7 +321,6 @@ export default function AdminMatchStatsPage() {
           </div>
         </div>
 
-        {/* Meta */}
         <div style={card}>
           <h3 style={{ marginTop: 0 }}>Match Meta</h3>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -369,7 +344,6 @@ export default function AdminMatchStatsPage() {
           </div>
         </div>
 
-        {/* Players */}
         <div style={card}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, gap: 8, flexWrap: "wrap" }}>
             <h3 style={{ margin: 0, minWidth: 120 }}>Player stats</h3>
@@ -403,7 +377,6 @@ export default function AdminMatchStatsPage() {
                   <React.Fragment key={`${uid}-${i}`}>
                     <div>
                       <div style={{ fontWeight: 700 }}>{display}</div>
-                      {/* keep raw userId editable to allow manual fix if needed */}
                       <input
                         placeholder="Mongo User ID"
                         value={r.userId}
@@ -451,7 +424,6 @@ export default function AdminMatchStatsPage() {
   );
 }
 
-/* styles */
 const wrap = { minHeight: "100vh", background: "#0f1115", color: "#e8ecf2", padding: 16, display: "flex", justifyContent: "center" };
 const panel = { width: "100%", maxWidth: 1000, display: "grid", gap: 12 };
 const card = { background: "#151922", border: "1px solid #232838", borderRadius: 16, padding: 24, marginBottom: 18, boxShadow: "0 2px 12px #0002" };

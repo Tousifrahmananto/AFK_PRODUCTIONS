@@ -1,7 +1,6 @@
 const API = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
 export async function register({ username, email, password, role }) {
-    // harden role values
     const allowed = new Set(["Player", "Sponsor", "Partner"]);
     const safeRole = allowed.has(role) ? role : "Player";
 

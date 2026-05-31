@@ -1,4 +1,3 @@
-// frontend/src/pages/AdminMatchMediaPage.js
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
@@ -7,9 +6,6 @@ import {
     uploadMatchMedia,
     deleteMatchMedia,
 } from "../services/mediaService";
-
-// Optional (nice to have): if you already have getBracket in tournamentService
-// import { getBracket } from "../services/tournamentService";
 
 export default function AdminMatchMediaPage() {
     const { id: tournamentId } = useParams();
@@ -51,7 +47,6 @@ export default function AdminMatchMediaPage() {
 
     useEffect(() => {
         load();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tournamentId, r, m, token]);
 
     async function handleUpload(kind) {
@@ -82,7 +77,6 @@ export default function AdminMatchMediaPage() {
         }
     }
 
-    // Styles (local, so no collisions)
     const styles = {
         wrap: { maxWidth: 1100, margin: "24px auto", padding: "0 12px" },
         h1: { fontSize: 22, fontWeight: 700, marginBottom: 8 },
@@ -151,7 +145,6 @@ export default function AdminMatchMediaPage() {
                 <div style={styles.card}>Loading…</div>
             ) : (
                 <>
-                    {/* Upload Videos */}
                     <div style={styles.card}>
                         <div style={styles.sectionTitle}>Videos</div>
                         <div style={styles.row}>
@@ -175,7 +168,6 @@ export default function AdminMatchMediaPage() {
                                             <div style={{ marginBottom: 8, fontWeight: 600, fontSize: 14 }}>
                                                 {v.originalName || v.url.split("/").pop()}
                                             </div>
-                                            {/* Video preview (if same origin). Otherwise, keep as link */}
                                             <video
                                                 src={v.url}
                                                 controls
@@ -206,7 +198,6 @@ export default function AdminMatchMediaPage() {
                         </div>
                     </div>
 
-                    {/* Upload Images */}
                     <div style={styles.card}>
                         <div style={styles.sectionTitle}>Images</div>
                         <div style={styles.row}>

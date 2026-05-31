@@ -47,7 +47,7 @@ const LoginPage = () => {
                     <button type="submit" className="btn">Log In</button>
                 </form>
                 <p className="text-center" style={{ marginTop: '1rem' }}>
-                    Don’t have an account? <a href="/register">Register</a>
+                    Don't have an account? <a href="/register">Register</a>
                 </p>
             </div>
         </div>

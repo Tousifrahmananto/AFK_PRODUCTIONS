@@ -1,10 +1,9 @@
-// client/src/pages/MediaGallery.js
 import React, { useEffect, useMemo, useState } from "react";
-import { fetchMedia } from "../services/mediaService"; // GET /api/media
+import { fetchMedia } from "../services/mediaService";
 
 function computeApiOrigin() {
     const api = process.env.REACT_APP_API || "";
-    if (api) return api.replace(/\/api\/?$/i, ""); // e.g. http://localhost:5000
+    if (api) return api.replace(/\/api\/?$/i, "");
     try {
         return window.location.origin.replace(":3000", ":5000");
     } catch {
@@ -16,7 +15,7 @@ export default function MediaGallery() {
     const API_ORIGIN = useMemo(() => computeApiOrigin(), []);
     const toUrl = (p) => {
         if (!p) return "";
-        if (/^https?:\/\//i.test(p)) return p; // already absolute (external/CDN)
+        if (/^https?:\/\//i.test(p)) return p;
         return `${API_ORIGIN}${p.startsWith("/") ? "" : "/"}${p}`;
     };
 
@@ -26,9 +25,8 @@ export default function MediaGallery() {
     useEffect(() => {
         (async () => {
             try {
-                const data = await fetchMedia({}); // your API returns both images & videos
+                const data = await fetchMedia({});
                 const list = Array.isArray(data) ? data : [];
-                // normalize a preview URL for each item
                 setItems(
                     list.map((m) => ({
                         ...m,
@@ -40,7 +38,6 @@ export default function MediaGallery() {
                 alert(e?.response?.data?.message || "Failed to load media");
             }
         })();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const filterList = (arr) => {
@@ -117,7 +114,6 @@ export default function MediaGallery() {
                             {m.matchId ? `Match ${m.matchId.replace("r=", "R").replace("&m=", " · M")}` : "—"}
                         </div>
 
-                        {/* Preview */}
                         {m.kind === "image" && m.previewUrl && (
                             <img
                                 src={m.previewUrl}

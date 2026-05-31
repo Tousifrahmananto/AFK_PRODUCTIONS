@@ -1,8 +1,6 @@
-// backend/controllers/mediaController.js
 const path = require("path");
 const Media = require("../models/Media");
 
-// Helpers
 const toTags = (v) =>
     Array.isArray(v) ? v : String(v || "").split(",").map(s => s.trim()).filter(Boolean);
 
@@ -13,9 +11,6 @@ const fileUrlFrom = (file) => {
     return `/uploads/${sub}/${file.filename}`;
 };
 
-/* ------------------------- Admin CRUD: Unified ------------------------- */
-// POST /api/media (Admin)
-// multipart single "file" (optional) + body: { kind, tournament, matchId?, title, description?, externalUrl?, ... }
 exports.createMedia = async (req, res) => {
     try {
         console.log("createMedia called - user:", req.user && (req.user.userId || req.user.email), "file:", req.file && req.file.filename);
@@ -46,7 +41,6 @@ exports.createMedia = async (req, res) => {
     }
 };
 
-// PUT /api/media/:id (Admin)
 exports.updateMedia = async (req, res) => {
     try {
         const upd = { ...req.body };
@@ -62,7 +56,6 @@ exports.updateMedia = async (req, res) => {
     }
 };
 
-// DELETE /api/media/:id (Admin)
 exports.deleteMedia = async (req, res) => {
     try {
         const doc = await Media.findByIdAndDelete(req.params.id);
@@ -74,8 +67,6 @@ exports.deleteMedia = async (req, res) => {
     }
 };
 
-/* ----------------------------- Public List ----------------------------- */
-// GET /api/media?kind=video|image&tournament=...&q=...&category=...
 exports.listMedia = async (req, res) => {
     try {
         const { kind, tournament, category, game, q, matchId } = req.query;
@@ -99,7 +90,6 @@ exports.listMedia = async (req, res) => {
             .sort({ createdAt: -1 })
             .lean();
 
-        // If DB has no items, provide a lightweight fallback by scanning the uploads folder
         if (!items || items.length === 0) {
             try {
                 const fs = require("fs");
@@ -107,7 +97,6 @@ exports.listMedia = async (req, res) => {
                 const UP = path.join(__dirname, "..", "uploads");
                 const files = [];
                 if (fs.existsSync(UP)) {
-                    // include files in root and subfolders images/ and videos/
                     const walk = (dir) => {
                         for (const f of fs.readdirSync(dir)) {
                             const full = path.join(dir, f);
@@ -154,8 +143,6 @@ exports.listMedia = async (req, res) => {
     }
 };
 
-/* --------------------- Per-Match (used by your UI) --------------------- */
-// GET /api/tournaments/:id/matches/:r/:m/media (Public)
 exports.listMatchMedia = async (req, res) => {
     try {
         const { id } = req.params;
@@ -183,7 +170,7 @@ exports.listMatchMedia = async (req, res) => {
         }));
 
         res.json({
-            title: "", // optional: populate tournament title if you want
+            title: "",
             media: { videos, images },
         });
     } catch (err) {
@@ -192,8 +179,6 @@ exports.listMatchMedia = async (req, res) => {
     }
 };
 
-// POST /api/tournaments/:id/matches/:r/:m/media (Admin)
-// multipart: "files"[] + body.kind = video|image
 exports.uploadMatchMedia = async (req, res) => {
     try {
         const { id } = req.params;
@@ -233,7 +218,6 @@ exports.uploadMatchMedia = async (req, res) => {
     }
 };
 
-// DELETE /api/tournaments/:id/matches/:r/:m/media (Admin) body: { kind, url }
 exports.deleteMatchMedia = async (req, res) => {
     try {
         const { id } = req.params;

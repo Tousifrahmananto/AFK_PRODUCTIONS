@@ -35,9 +35,8 @@ export default function MyTeamPage() {
         return <div className="text-center mt-10">Loading…</div>;
     }
 
-    // ✅ Defensive UX: also ensure the candidate has no team in DB
     const available = allPlayers
-        .filter((p) => !p.team) // must NOT belong to any team
+        .filter((p) => !p.team)
         .filter((p) => !team.members.some((m) => m._id === p._id));
 
     const captainId = typeof team.captain === "object" ? team.captain._id : team.captain;

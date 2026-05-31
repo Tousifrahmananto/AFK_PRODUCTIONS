@@ -1,24 +1,16 @@
-// frontend/src/pages/admin/AdminMediaPage.js
 import React, { useContext, useEffect, useState, useMemo } from "react";
 import { AuthContext } from "../context/AuthContext";
 import {
-    fetchMedia,       // GET /api/media
-    createMedia,      // POST /api/media
-    deleteMedia       // DELETE /api/media/:id
+    fetchMedia,
+    createMedia,
+    deleteMedia
 } from "../services/mediaService";
 
-/**
- * Build the backend origin for static files:
- * - If REACT_APP_API = http://localhost:5000/api -> origin = http://localhost:5000
- * - Else try swapping :3000 -> :5000 as a sane default for local dev
- */
 function computeApiOrigin() {
     const env = process.env.REACT_APP_API || "";
     if (env) {
-        // strip trailing /api or /api/
         return env.replace(/\/api\/?$/i, "");
     }
-    // fallback (cra-friendly local dev)
     try {
         const { origin } = window.location;
         return origin.replace(":3000", ":5000");
@@ -33,13 +25,10 @@ export default function AdminMediaPage() {
     const API_ORIGIN = useMemo(() => computeApiOrigin(), []);
     const toUrl = (p) => {
         if (!p) return "";
-        // if already absolute, keep it
         if (/^https?:\/\//i.test(p)) return p;
-        // expect server to serve: app.use("/uploads", express.static(...))
         return `${API_ORIGIN}${p.startsWith("/") ? "" : "/"}${p}`;
     };
 
-    // shared fields for both image/video uploads
     const [form, setForm] = useState({
         tournament: "",
         matchId: "",
@@ -53,11 +42,9 @@ export default function AdminMediaPage() {
         visibility: "Public",
     });
 
-    // choose which kind we are uploading this time
-    const [kind, setKind] = useState("video"); // "video" | "image"
+    const [kind, setKind] = useState("video");
     const [file, setFile] = useState(null);
 
-    // library list (both kinds)
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -76,8 +63,7 @@ export default function AdminMediaPage() {
     };
 
     useEffect(() => {
-        load(); // on mount
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        load();
     }, []);
 
     const onChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -92,16 +78,15 @@ export default function AdminMediaPage() {
         try {
             await createMedia(
                 {
-                    file, // optional
+                    file,
                     fields: {
                         ...form,
-                        kind, // "image" or "video"
+                        kind,
                     },
                 },
                 token
             );
 
-            // reset a few fields for convenience
             setForm((f) => ({
                 ...f,
                 title: "",
@@ -143,7 +128,6 @@ export default function AdminMediaPage() {
         <div style={{ padding: 16, color: "#e8ecf2", background: "#0f1115", minHeight: "100vh" }}>
             <h2>Admin · Media Manager</h2>
 
-            {/* Upload card */}
             <div style={{ ...card, marginBottom: 14 }}>
                 <form onSubmit={onSubmit} style={{ display: "grid", gap: 10 }}>
                     <div style={{ display: "flex", gap: 10 }}>
@@ -229,9 +213,8 @@ export default function AdminMediaPage() {
                         onChange={onChange}
                     />
 
-                    {/* accept depends on kind */}
                     <input
-                        key={kind} // reset chosen file when switching kind
+                        key={kind}
                         type="file"
                         accept={kind === "image" ? "image/*" : "video/*"}
                         onChange={(e) => setFile(e.target.files?.[0] || null)}
@@ -241,7 +224,6 @@ export default function AdminMediaPage() {
                 </form>
             </div>
 
-            {/* Library list (both kinds) */}
             <h3 style={{ marginTop: 8 }}>Library</h3>
             {loading && <div>Loading…</div>}
             {!loading && items.length === 0 && <div>No media yet.</div>}
@@ -284,7 +266,6 @@ export default function AdminMediaPage() {
                                 {m.category || "—"} · {m.visibility || "Public"}
                             </div>
 
-                            {/* Show preview depending on kind */}
                             {m.kind === "image" && (m.filePath || m.externalUrl) && (
                                 <img
                                     src={toUrl(m.filePath || m.externalUrl)}

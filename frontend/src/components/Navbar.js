@@ -1,4 +1,3 @@
-// src/components/Navbar.js
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -23,7 +22,6 @@ export default function Navbar() {
     [token]
   );
 
-  /* --------- Socket wiring --------- */
   useEffect(() => {
     if (!token || !user) return;
 
@@ -37,7 +35,7 @@ export default function Navbar() {
 
     s.on("notify", (n) => {
       setUnread((u) => u + 1);
-      setItems((prev) => [n, ...prev].slice(0, 20)); // prepend newest
+      setItems((prev) => [n, ...prev].slice(0, 20));
     });
 
     return () => {
@@ -48,7 +46,6 @@ export default function Navbar() {
     };
   }, [token, user]);
 
-  // initial unread count
   useEffect(() => {
     if (!token) {
       setUnread(0);
@@ -60,7 +57,6 @@ export default function Navbar() {
       .catch(() => setUnread(0));
   }, [token, authCfg]);
 
-  // load dropdown list
   useEffect(() => {
     if (!open || !token) return;
     AX.get("/api/notifications", authCfg)
@@ -87,30 +83,29 @@ export default function Navbar() {
     if (n.link) navigate(n.link);
   };
 
-  /* --------- Role-aware nav --------- */
-  const role = user?.role; // "Admin" | "TeamManager" | "Player" | "Sponsor" | "Partner"
+  const role = user?.role;
   const leftLinks = useMemo(() => {
     const base = [
       { to: "/tournaments", label: "Tournaments" },
-      { to: "/leaderboard", label: "Leaderboard" }, // 👈 new
+      { to: "/browse", label: "Browse" },
+      { to: "/leaderboard", label: "Leaderboard" },
     ];
 
     if (role === "Admin") {
       base.push({ to: "/admin/create-tournament", label: "Create Tournament" });
-      base.push({ to: "/ads/mine", label: "Manage Ads" }); // admin ad management
-      base.push({ to: "/admin/user-moderation", label: "User Moderation" }); // 👈 ADDED
+      base.push({ to: "/ads/mine", label: "Manage Ads" });
+      base.push({ to: "/admin/user-moderation", label: "User Moderation" });
     }
     if (role === "TeamManager") {
       base.push({ to: "/create-team", label: "Create Team" });
       base.push({ to: "/my-team", label: "My Team" });
     }
     if (role === "Sponsor" || role === "Partner") {
-      base.push({ to: "/ads/mine", label: "My Ads" }); // sponsors/partners
+      base.push({ to: "/ads/mine", label: "My Ads" });
     }
     return base;
   }, [role]);
 
-  // hide navbar on auth pages
   const isAuthPage = pathname === "/login" || pathname === "/register";
   if (isAuthPage) return null;
 
@@ -122,7 +117,6 @@ export default function Navbar() {
           {leftLinks.map((l) => (
             <Link key={l.to} to={l.to}>{l.label}</Link>
           ))}
-          {/* Media NavLink (styled, shows active state) */}
           <NavLink
             to="/media"
             style={({ isActive }) => ({
@@ -139,7 +133,6 @@ export default function Navbar() {
         <div className="right">
           {user ? (
             <>
-              {/* Notifications */}
               <div className="notif">
                 <button
                   type="button"
@@ -189,7 +182,6 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* component-scoped styles */}
       <style>{`
         .nav-wrap{position:sticky;top:0;z-index:50;background:#0d0f15;border-bottom:1px solid #23263a}
         .nav{max-width:1200px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between}

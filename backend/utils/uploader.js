@@ -1,4 +1,3 @@
-// backend/utils/uploader.js
 const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
@@ -10,7 +9,6 @@ if (!fs.existsSync(UPLOAD_ROOT)) {
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        // place images/videos into separate subfolders so controller URLs match (/uploads/images/... or /uploads/videos/...)
         const isImage = /^image\//i.test(file.mimetype);
         const sub = isImage ? "images" : "videos";
         const dir = path.join(UPLOAD_ROOT, sub);
@@ -46,11 +44,9 @@ const uploader = multer({
     storage,
     fileFilter,
     limits: {
-        // 200MB per file; adjust if needed
         fileSize: 200 * 1024 * 1024,
     },
 });
 
-// at the bottom of backend/utils/uploader.js
-module.exports = uploader;        // default
-module.exports.videoUpload = uploader; // named alias for routes expecting { videoUpload }
+module.exports = uploader;
+module.exports.videoUpload = uploader;

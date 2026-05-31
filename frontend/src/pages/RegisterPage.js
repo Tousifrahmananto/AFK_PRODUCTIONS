@@ -8,7 +8,7 @@ export default function RegisterPage() {
         username: "",
         email: "",
         password: "",
-        role: "Player", // always Player
+        role: "Player",
     });
 
     const onChange = (e) =>
@@ -54,7 +54,6 @@ export default function RegisterPage() {
                         style={input}
                     />
 
-                    {/* Role is fixed to Player, no dropdown shown */}
                     <input
                         type="hidden"
                         name="role"

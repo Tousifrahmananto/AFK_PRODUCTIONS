@@ -1,10 +1,8 @@
-// backend/controllers/userController.js
 const mongoose = require("mongoose");
 const User = require("../models/User");
 const Team = require("../models/Team");
 const Tournament = require("../models/Tournament");
 
-/* ----------------------- public/profile helpers ----------------------- */
 async function getUserPublic(req, res) {
   try {
     const u = await User.findById(req.params.id)
@@ -42,7 +40,6 @@ async function fetchJoinedTournaments(userId, teamId) {
   ].sort((a, b) => new Date(a.startDate || 0) - new Date(b.startDate || 0));
 }
 
-/* ----------------------------- profile APIs ----------------------------- */
 async function getUserProfile(req, res) {
   try {
     const { id } = req.params;
@@ -104,11 +101,8 @@ async function getMyTournaments(req, res) {
   }
 }
 
-/* ------------------------------ moderation ------------------------------ */
-/** GET /api/users/admin  (existing: returns array) */
 async function adminListUsers(req, res) {
   try {
-    // diagnostic logging for debugging 500s from the moderation endpoint
     console.log("adminListUsers called", {
       query: req.query,
       user: req.user ? { id: req.user.userId, role: req.user.role } : null,
@@ -120,7 +114,6 @@ async function adminListUsers(req, res) {
     if (bannedOnly === "true") filter.$or = [{ isBanned: true }, { banned: true }];
 
     if (q.trim()) {
-      // escape user input to avoid "Invalid regular expression" runtime errors
       const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const rx = new RegExp(escapeRegex(q.trim()), "i");
       filter.$or = [
@@ -141,12 +134,10 @@ async function adminListUsers(req, res) {
     res.json(users);
   } catch (e) {
     console.error("adminListUsers error:", e && e.stack ? e.stack : e);
-    // include error message in response temporarily for debugging (non-production)
     res.status(500).json({ message: "Failed to load users", error: e?.message || String(e) });
   }
 }
 
-/** POST /api/users/:id/soft-ban { reason? } */
 async function softBanUser(req, res) {
   try {
     const { id } = req.params;
@@ -171,7 +162,6 @@ async function softBanUser(req, res) {
   }
 }
 
-/** POST /api/users/:id/unban */
 async function unbanUser(req, res) {
   try {
     const { id } = req.params;
@@ -192,13 +182,10 @@ async function unbanUser(req, res) {
 }
 
 module.exports = {
-  // profile
   getUserPublic,
   getUserProfile,
   getMe,
   getMyTournaments,
-
-  // moderation
   adminListUsers,
   softBanUser,
   unbanUser,

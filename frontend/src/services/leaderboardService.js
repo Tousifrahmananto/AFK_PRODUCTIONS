@@ -6,5 +6,5 @@ export async function getPlayersLeaderboard({ tournamentId, limit = 100 } = {}) 
     if (tournamentId) params.tournament = tournamentId;
     if (limit) params.limit = limit;
     const res = await axios.get(`${API}/leaderboard/players`, { params });
-    return res.data; // { items:[{ userId, username, role, totalScore, kills, deaths, assists, entries }] }
+    return res.data;
 }

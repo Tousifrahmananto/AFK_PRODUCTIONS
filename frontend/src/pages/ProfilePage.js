@@ -1,4 +1,3 @@
-// src/pages/ProfilePage.js
 import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
@@ -6,7 +5,7 @@ import { getUserById, getMyTournaments, getMeProfile } from "../services/userSer
 import ProfileCard from "../components/ProfileCard";
 
 const ProfilePage = () => {
-  const { id } = useParams();               // undefined on "/profile", defined on "/profile/:id"
+  const { id } = useParams();
   const { token } = useContext(AuthContext);
 
   const [profile, setProfile] = useState(null);
@@ -20,7 +19,6 @@ const ProfilePage = () => {
     }
 
     if (id) {
-      // viewing someone else by id
       getUserById(id)
         .then((u) => {
           setProfile(u);
@@ -31,7 +29,6 @@ const ProfilePage = () => {
           setError(err?.response?.data?.message || err.message || "Failed to load profile");
         });
     } else {
-      // viewing own profile at "/profile"
       getMeProfile()
         .then(({ user, tournaments }) => {
           setProfile(user);

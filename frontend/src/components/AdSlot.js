@@ -1,4 +1,3 @@
-// frontend/src/components/AdSlot.js
 import React, { useEffect, useState } from "react";
 import { getPlacement, clickAd } from "../services/adService";
 

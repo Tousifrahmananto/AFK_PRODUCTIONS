@@ -1,4 +1,3 @@
-// client/src/pages/CreateTournamentPage.js
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   getAllTournaments,
@@ -51,7 +50,7 @@ export default function CreateTournamentPage() {
       setLoading(false);
     }
   };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [token]);
+  useEffect(() => { load(); }, [token]);
 
   const onChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -152,7 +151,6 @@ export default function CreateTournamentPage() {
       `}</style>
 
       <div className="ctp-container">
-        {/* Form */}
         <div className="ctp-card">
           <form onSubmit={onSubmit}>
             <div>
@@ -246,7 +244,6 @@ export default function CreateTournamentPage() {
           </form>
         </div>
 
-        {/* List */}
         <div className="ctp-card">
           {loading && <div>Loading…</div>}
           {!loading && list.length === 0 && <div>No tournaments yet.</div>}

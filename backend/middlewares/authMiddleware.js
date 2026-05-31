@@ -1,7 +1,5 @@
-// backend/middlewares/authMiddleware.js
 const jwt = require("jsonwebtoken");
 
-// Read token from Authorization header (Bearer) or cookie
 function extractToken(req) {
     const h = req.headers?.authorization || "";
     if (h.startsWith("Bearer ")) return h.slice(7).trim();
@@ -9,7 +7,6 @@ function extractToken(req) {
     return null;
 }
 
-// Protect: require a valid JWT and attach { userId, role } to req.user
 async function protect(req, res, next) {
     try {
         const token = extractToken(req);
@@ -18,7 +15,6 @@ async function protect(req, res, next) {
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        // Support different payload shapes just in case
         const userId = decoded.userId || decoded.id || decoded._id;
         const role = decoded.role;
 
@@ -33,7 +29,6 @@ async function protect(req, res, next) {
     }
 }
 
-// Role guard: require any of the specified roles
 function requireRole(...roles) {
     return (req, res, next) => {
         const r = req.user?.role;
@@ -44,7 +39,6 @@ function requireRole(...roles) {
     };
 }
 
-// Convenience: admin-only
 function isAdmin(req, res, next) {
     return requireRole("Admin")(req, res, next);
 }

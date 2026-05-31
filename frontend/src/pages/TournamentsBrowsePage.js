@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
     getAllTournaments,
     getMyStatus,
@@ -10,7 +11,7 @@ import {
     getBracket,
 } from "../services/tournamentService";
 import { useToast } from "../components/ToastHost";
-import AdSlot from "../components/AdSlot"; // ← added
+import AdSlot from "../components/AdSlot";
 
 const STATUSES = ["All", "Upcoming", "Live", "Completed"];
 
@@ -26,11 +27,12 @@ export default function TournamentsBrowsePage() {
     const [to, setTo] = useState("");
     const [mineOnly, setMineOnly] = useState(false);
 
+    const navigate = useNavigate();
     const [openId, setOpenId] = useState(null);
     const [meStatus, setMeStatus] = useState(null);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
-    const [bracketInfo, setBracketInfo] = useState(null); // {visible, title, data}
+    const [bracketInfo, setBracketInfo] = useState(null);
 
     const filtered = useMemo(() => {
         const term = q.trim().toLowerCase();
@@ -65,7 +67,6 @@ export default function TournamentsBrowsePage() {
     useEffect(() => { load(); }, []);
 
     const markMine = async (arr) => {
-        // lazily mark "mine" for filtering
         const withMine = await Promise.all(
             arr.map(async (t) => {
                 try {
@@ -81,7 +82,6 @@ export default function TournamentsBrowsePage() {
 
     useEffect(() => {
         if (mineOnly && list.length) { markMine(list); }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mineOnly]);
 
     const openDetails = async (id) => {
@@ -97,11 +97,9 @@ export default function TournamentsBrowsePage() {
     const closeDetails = () => { setOpenId(null); setMeStatus(null); setBracketInfo(null); };
     const tById = (id) => list.find((x) => String(x._id) === String(id));
 
-    // Toast helpers
     const ok = (m) => toast.push(m, "ok");
     const err = (m) => toast.push(m, "err");
 
-    // Actions
     const actRegisterSolo = async (id) => {
         setBusy(true);
         try {
@@ -135,13 +133,12 @@ export default function TournamentsBrowsePage() {
         finally { setBusy(false); }
     };
 
-    // Bracket preview
     const viewBracket = async (id) => {
         try {
             const vis = await getBracketVisibility(id);
             if (!vis.visible) { err("Bracket is not visible yet."); return; }
             const { title, bracketData } = await getBracket(id);
-            setBracketInfo({ visible: true, title, data: bracketData });
+            setBracketInfo({ id, visible: true, title, data: bracketData });
         } catch (e) {
             err(e?.response?.data?.message || "Failed to load bracket.");
         }
@@ -189,7 +186,6 @@ export default function TournamentsBrowsePage() {
         .mt8 { margin-top:8px; }
         .f13 { font-size:13px; color:var(--muted); }
 
-        /* bracket modal */
         .modal { position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; padding:20px; z-index:60; }
         .modal-card { background:var(--panel); border:1px solid var(--line); color:var(--text); width:100%; max-width:880px; border-radius:14px; padding:16px; }
         .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; }
@@ -198,7 +194,6 @@ export default function TournamentsBrowsePage() {
             <div className="tb-container">
                 <div className="tb-title">Tournaments</div>
 
-                {/* === Sponsor/Partner Ads for browse page === */}
                 <div style={{ margin: "0 0 14px 0" }}>
                     <AdSlot category="TournamentBrowse" />
                 </div>
@@ -250,7 +245,6 @@ export default function TournamentsBrowsePage() {
                 </div>
             </div>
 
-            {/* Details Drawer */}
             {openId && (
                 <div className="drawer" onClick={closeDetails}>
                     <div className="drawer-card" onClick={(e) => e.stopPropagation()}>
@@ -294,24 +288,74 @@ export default function TournamentsBrowsePage() {
                 </div>
             )}
 
-            {/* Bracket Preview (simple placeholder) */}
             {bracketInfo && (
                 <div className="modal" onClick={() => setBracketInfo(null)}>
                     <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                             <h3 style={{ margin: 0 }}>Bracket · {bracketInfo.title}</h3>
                             <button className="x" onClick={() => setBracketInfo(null)}>Close</button>
                         </div>
                         {!bracketInfo.data ? (
-                            <div>Bracket not generated yet.</div>
+                            <div style={{ color: "#9aa3b2", padding: "24px 0", textAlign: "center" }}>
+                                Bracket not generated yet.
+                            </div>
                         ) : (
-                            <div className="mono">
-                                Rounds: {bracketInfo.data.rounds?.length || 0}
-                                <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({
-                                    participants: bracketInfo.data.participants?.length || 0,
-                                    rounds: bracketInfo.data.rounds?.map((r) => r.length),
-                                }, null, 2)}</pre>
-                                {/* TODO: replace with real bracket visualization later */}
+                            <div>
+                                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
+                                    <span className="pill" style={{ fontSize: 13, padding: "6px 12px" }}>
+                                        👥 {bracketInfo.data.participants?.length || 0} participants
+                                    </span>
+                                    <span className="pill" style={{ fontSize: 13, padding: "6px 12px" }}>
+                                        🔁 {bracketInfo.data.rounds?.length || 0} rounds
+                                    </span>
+                                    {bracketInfo.data.method && (
+                                        <span className="pill" style={{ fontSize: 13, padding: "6px 12px" }}>
+                                            ⚙️ {bracketInfo.data.method.replace(/-/g, " ")}
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8 }}>
+                                    {(bracketInfo.data.rounds || []).map((round, rIdx) => {
+                                        const total    = round.length;
+                                        const decided  = round.filter(m => m?.winner).length;
+                                        const isLast   = rIdx === bracketInfo.data.rounds.length - 1;
+                                        return (
+                                            <div key={rIdx} style={{
+                                                flex: "0 0 auto",
+                                                background: "#11151d",
+                                                border: "1px solid #232838",
+                                                borderRadius: 10,
+                                                padding: "10px 14px",
+                                                minWidth: 110,
+                                                textAlign: "center",
+                                            }}>
+                                                <div style={{ fontSize: 11, color: "#4f8cff", fontWeight: 700, letterSpacing: 1.5, marginBottom: 6 }}>
+                                                    {isLast ? (bracketInfo.data.rounds.length === 1 ? "FINALS" : "GRAND FINALS") : `R${rIdx + 1}`}
+                                                </div>
+                                                <div style={{ fontSize: 22, fontWeight: 800, color: "#e8ecf2" }}>{total}</div>
+                                                <div style={{ fontSize: 11, color: "#6b7a99", marginTop: 2 }}>matches</div>
+                                                {decided > 0 && (
+                                                    <div style={{ fontSize: 11, color: "#2abb9b", marginTop: 4 }}>
+                                                        {decided}/{total} done
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={() => {
+                                            setBracketInfo(null);
+                                            navigate(`/tournaments/${bracketInfo.id}/bracket`);
+                                        }}
+                                    >
+                                        Open Full Bracket →
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>

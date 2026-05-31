@@ -1,4 +1,3 @@
-// src/App.js
 import React from "react";
 import {
   BrowserRouter as Router,
@@ -17,30 +16,24 @@ import AdminMatchStatsPage from "./pages/AdminMatchStatsPage";
 import AdminUserModerationPage from "./pages/AdminUserModerationPage";
 import MediaGalleryPage from "./pages/MediaGalleryPage";
 import AdminMediaPage from "./pages/AdminMediaPage";
-import MyAdsPage from "./pages/MyAdsPage" // when you add it
+import MyAdsPage from "./pages/MyAdsPage";
 
-// Auth pages
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
-// Public / core pages
 import TournamentsPage from "./pages/TournamentsPage";
 import BracketPage from "./pages/BracketPage";
 import ProfilePage from "./pages/ProfilePage";
-import MediaGallery from './pages/MediaGallery';
+import TournamentsBrowsePage from "./pages/TournamentsBrowsePage";
 
-// Team management
 import CreateTeamPage from "./pages/CreateTeamPage";
 import MyTeamPage from "./pages/MyTeamPage";
-import TournamentsBrowsePage from "./pages/TournamentsBrowsePage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 
-// Admin
 import CreateTournamentPage from "./pages/CreateTournamentPage";
 
 function AppFrame() {
   const { pathname } = useLocation();
 
-  // Hide the navbar on auth screens and the landing (dashboard)
   const hideOn = new Set(["/login", "/register", "/dashboard", "/"]);
   const showNavbar = !hideOn.has(pathname);
 
@@ -49,41 +42,33 @@ function AppFrame() {
       {showNavbar && <Navbar />}
 
       <Routes>
-        {/* Default → Dashboard */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
 
-        {/* Auth */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* Public */}
         <Route path="/tournaments" element={<TournamentsPage />} />
+        <Route path="/browse" element={<TournamentsBrowsePage />} />
         <Route path="/tournaments/:id/bracket" element={<BracketPage />} />
 
-        {/* Admin */}
-        <Route path="/admin/create-tournament" element={<CreateTournamentPage />} />
-        <Route path="/admin/user-moderation" element={<AdminUserModerationPage />} />
+        <Route path="/leaderboard" element={<LeaderboardPage />} />
 
-        {/* Team Manager (support both old and new paths) */}
         <Route path="/create-team" element={<CreateTeamPage />} />
         <Route path="/my-team" element={<MyTeamPage />} />
         <Route path="/teams/create" element={<CreateTeamPage />} />
         <Route path="/teams/my" element={<MyTeamPage />} />
 
-        {/* Profile (me and by id) */}
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profile/:id" element={<ProfilePage />} />
-        <Route path="/tournaments" element={<TournamentsBrowsePage />} />
 
-        {/* Media Gallery and Admin Media */}
         <Route path="/gallery" element={<MediaGalleryPage />} />
+        <Route path="/media" element={<MediaGalleryPage />} />
         <Route path="/admin/media" element={<AdminMediaPage />} />
         <Route path="/ads/mine" element={<MyAdsPage />} />
-        <Route path="/media" element={<MediaGallery />} />
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/leaderboard" element={<LeaderboardPage />} />
+
+        <Route path="/admin/create-tournament" element={<CreateTournamentPage />} />
+        <Route path="/admin/user-moderation" element={<AdminUserModerationPage />} />
         <Route
           path="/admin/match-stats/:tournamentId"
           element={
@@ -100,6 +85,8 @@ function AppFrame() {
             </RequireAdmin>
           }
         />
+
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </div>
   );

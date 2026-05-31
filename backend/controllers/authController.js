@@ -1,9 +1,7 @@
-// backend/controllers/authController.js
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-/** Normalize like: " sponsor " -> "Sponsor" (anything else -> "") */
 function normalizeRole(raw) {
     if (!raw) return "";
     const s = String(raw).trim().toLowerCase();
@@ -15,7 +13,6 @@ function normalizeRole(raw) {
 
 const PUBLIC_ROLES = new Set(["Player", "Sponsor", "Partner"]);
 
-// Register
 const registerUser = async (req, res) => {
     try {
         const username = String(req.body.username || "").trim();
@@ -27,7 +24,6 @@ const registerUser = async (req, res) => {
             return res.status(400).json({ message: "username, email, and password are required" });
         }
 
-        // prevent duplicate by email or username
         const exists = await User.findOne({ $or: [{ email }, { username }] });
         if (exists) {
             return res.status(400).json({ message: "User already exists" });
@@ -35,7 +31,6 @@ const registerUser = async (req, res) => {
 
         const hashed = await bcrypt.hash(password, 10);
 
-        // Only allow these roles from public signup (case-insensitive)
         const normalized = normalizeRole(roleRaw);
         const userRole = PUBLIC_ROLES.has(normalized) ? normalized : "Player";
 
@@ -50,7 +45,6 @@ const registerUser = async (req, res) => {
     }
 };
 
-// Login
 const loginUser = async (req, res) => {
     try {
         const email = String(req.body.email || "").trim();

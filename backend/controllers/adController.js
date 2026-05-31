@@ -1,4 +1,3 @@
-// backend/controllers/adController.js
 const AdCampaign = require("../models/AdCampaign");
 
 const canManage = (user, doc) =>

@@ -9,10 +9,8 @@ const PlayerListPage = () => {
     const [team, setTeam] = useState(null);
 
     useEffect(() => {
-        // 1) fetch all players
         listAllPlayers(token).then(setPlayers).catch(console.error);
 
-        // 2) fetch my team to get its ID
         axios
             .get("http://localhost:5000/api/teams/my", {
                 headers: { Authorization: `Bearer ${token}` },
@@ -33,7 +31,6 @@ const PlayerListPage = () => {
         try {
             await addPlayerToTeam(team._id, playerId, token);
             alert("Player added!");
-            // Optionally remove from list or refetch:
             setPlayers((prev) => prev.filter((p) => p._id !== playerId));
         } catch (err) {
             alert(err.response?.data?.message || "Failed to add player");

@@ -1,4 +1,3 @@
-// frontend/src/services/adService.js
 const API = process.env.REACT_APP_API_BASE || "http://localhost:5000/api";
 
 function authHeaders() {
@@ -6,7 +5,6 @@ function authHeaders() {
     return t ? { Authorization: `Bearer ${t}` } : {};
 }
 
-// Sponsor/Partner/Admin
 export async function listMyAds() {
     const res = await fetch(`${API}/ads/mine`, { headers: authHeaders() });
     return res.json();
@@ -29,7 +27,6 @@ export async function deleteAd(id) {
     return res.json();
 }
 
-// Public placements
 export async function getPlacement(params = {}) {
     const q = new URLSearchParams(params).toString();
     const res = await fetch(`${API}/ads/placement?${q}`);

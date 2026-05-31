@@ -1,4 +1,3 @@
-// src/pages/MyAdsPage.js
 import React, { useEffect, useState } from "react";
 import { listMyAds, createAd, deleteAd } from "../services/adService";
 

@@ -2,14 +2,10 @@ const PlayerStat = require("../models/PlayerStat");
 const mongoose = require("mongoose");
 const Tournament = require("../models/Tournament");
 const Media = require("../models/Media");
-/**
- * POST /api/tournaments/:id/matches/:roundIndex/:matchIndex/player-stats
- * Admin-only. Body: { stats: [{ userId, kills, deaths, assists, score }] }
- */
+
 function toAbsoluteUrl(req, p) {
   if (!p) return "";
-  if (/^https?:\/\//i.test(p)) return p; // already absolute (external/CDN)
-  // infer origin from the current request
+  if (/^https?:\/\//i.test(p)) return p;
   const proto = (req.headers["x-forwarded-proto"] || req.protocol || "http");
   const host = req.headers["x-forwarded-host"] || req.headers.host;
   return `${proto}://${host}${p.startsWith("/") ? "" : "/"}${p}`;
@@ -22,7 +18,6 @@ exports.recordPlayerStatsForMatch = async (req, res) => {
       return res.status(400).json({ message: "stats array required" });
     }
 
-    // Upsert each row (tournament + user + round + match)
     const ops = stats.map(s => ({
       updateOne: {
         filter: {
@@ -51,10 +46,6 @@ exports.recordPlayerStatsForMatch = async (req, res) => {
   }
 };
 
-/**
- * GET /api/tournaments/:id/matches/:roundIndex/:matchIndex/player-stats
- * Admin-only. Returns existing entries (so you can edit).
- */
 exports.getPlayerStatsForMatch = async (req, res) => {
   try {
     const { id, roundIndex, matchIndex } = req.params;
@@ -80,11 +71,10 @@ exports.getPlayerStatsForMatch = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch stats" });
   }
 };
-// server/controllers/tournamentController.js
+
 const User = require("../models/User");
 const Team = require("../models/Team");
 
-// ---- constants & helpers ----
 const BRACKETS = ["Single Elimination", "Double Elimination", "Round Robin"];
 const STATUSES = ["Upcoming", "Live", "Completed"];
 
@@ -95,11 +85,9 @@ const toDate = (v) => {
 };
 const isPast = (d) => d && d.getTime() < Date.now();
 
-// Treat "", null, undefined as blank
 const isBlank = (v) =>
   v === undefined || v === null || (typeof v === "string" && v.trim() === "");
 
-// shuffle + bracket helpers
 function fisherYatesShuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -112,7 +100,7 @@ function nextPowerOfTwo(n) { let p = 1; while (p < n) p <<= 1; return p; }
 function buildSingleElimRounds(ordered) {
   const N = ordered.length;
   const size = nextPowerOfTwo(N);
-  const withByes = ordered.concat(Array(size - N).fill(null)); // null => BYE
+  const withByes = ordered.concat(Array(size - N).fill(null));
   const rounds = [];
   const round1 = [];
   for (let i = 0; i < withByes.length; i += 2) {
@@ -129,15 +117,14 @@ function buildSingleElimRounds(ordered) {
 function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
 function placeWinnerInNextRound(bracketData, roundIndex, matchIndex, winnerObj) {
   const nextRoundIndex = roundIndex + 1;
-  if (!bracketData.rounds[nextRoundIndex]) return; // last round
+  if (!bracketData.rounds[nextRoundIndex]) return;
   const nextMatchIndex = Math.floor(matchIndex / 2);
   const slot = matchIndex % 2 === 0 ? "p1" : "p2";
   const m = bracketData.rounds[nextRoundIndex][nextMatchIndex];
   if (!m) return;
-  if (m[slot] == null) m[slot] = winnerObj; // don't overwrite if already set
+  if (m[slot] == null) m[slot] = winnerObj;
 }
 
-// Move single entrants forward ONE round without declaring a winner.
 function promoteByesOneRound(bracketData) {
   for (let r = 0; r < bracketData.rounds.length - 1; r++) {
     const round = bracketData.rounds[r];
@@ -157,7 +144,6 @@ function promoteByesOneRound(bracketData) {
   }
 }
 
-// Visibility rule for non-admins
 function isBracketVisibleToUsers(t) {
   const deadlinePassed =
     t.registrationDeadline && new Date(t.registrationDeadline).getTime() < Date.now();
@@ -167,7 +153,6 @@ function isBracketVisibleToUsers(t) {
   return regClosed || deadlinePassed || teamsFull || solosFull;
 }
 
-// accept legacy field names
 function normalizeBody(body) {
   const bracket = body.bracket ?? body.format ?? "";
   const playerLimit =
@@ -219,7 +204,6 @@ function validate(body, isCreate = true) {
   return { valid: Object.keys(e).length === 0, errors: e };
 }
 
-/* ---------- label helpers (teamName / username) ---------- */
 async function buildLabelMaps(tournamentDoc) {
   const teamIds = tournamentDoc.teams || [];
   const soloIds = tournamentDoc.soloPlayers || [];
@@ -243,7 +227,7 @@ async function buildLabelMaps(tournamentDoc) {
 
 function labelForParticipant(p, teamMap, userMap) {
   if (!p) return null;
-  if (p.label) return p.label; // already labeled
+  if (p.label) return p.label;
   const sid = String(p.id);
   return p.kind === "team" ? (teamMap[sid] || sid) : (userMap[sid] || sid);
 }
@@ -269,7 +253,6 @@ function enrichBracketLabels(bracketData, teamMap, userMap) {
   return bracketData;
 }
 
-/* ---------- LIST ---------- */
 exports.getAllTournaments = async (req, res) => {
   try {
     const { status, game, from, to } = req.query;
@@ -295,7 +278,6 @@ exports.getAllTournaments = async (req, res) => {
   }
 };
 
-/* ---------- CRUD ---------- */
 exports.createTournament = async (req, res) => {
   try {
     const normalized = normalizeBody(req.body);
@@ -333,22 +315,18 @@ exports.updateTournament = async (req, res) => {
   try {
     const normalized = normalizeBody(req.body);
 
-    // Optional validation for enums/date strings. Do not require missing fields.
     const { valid, errors } = validate(normalized, false);
     if (!valid) return res.status(400).json({ message: "Validation failed", errors });
 
     const updates = {};
 
-    // strings: set only if non-blank
     ["title", "game", "bracket", "status", "description", "rules", "location", "prizePool", "entryFee"]
       .forEach((k) => { if (!isBlank(normalized[k])) updates[k] = normalized[k]; });
 
-    // boolean toggle (allow explicit false)
     if (!isBlank(normalized.registrationOpen)) {
       updates.registrationOpen = !!normalized.registrationOpen;
     }
 
-    // numbers
     if (!isBlank(normalized.playerLimit)) {
       const p = Number(normalized.playerLimit);
       if (Number.isNaN(p) || p < 0) return res.status(400).json({ message: "playerLimit must be >= 0" });
@@ -360,7 +338,6 @@ exports.updateTournament = async (req, res) => {
       updates.teamLimit = t;
     }
 
-    // dates
     for (const dk of ["startDate", "endDate", "registrationDeadline"]) {
       if (!isBlank(normalized[dk])) {
         const d = toDate(normalized[dk]);
@@ -375,7 +352,6 @@ exports.updateTournament = async (req, res) => {
       return res.status(400).json({ message: "registrationDeadline must be on/before startDate" });
     }
 
-    // whitelist enums
     if (updates.bracket && !BRACKETS.includes(updates.bracket)) {
       return res.status(400).json({ message: "invalid bracket" });
     }
@@ -401,7 +377,6 @@ exports.deleteTournament = async (req, res) => {
   }
 };
 
-/* ---------- PARTICIPANTS & REGISTRATION TOGGLE ---------- */
 exports.getParticipants = async (req, res) => {
   try {
     const t = await Tournament.findById(req.params.id)
@@ -437,7 +412,6 @@ exports.toggleRegistration = async (req, res) => {
   }
 };
 
-/* ---------- MY STATUS ---------- */
 exports.getMyStatus = async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -454,7 +428,6 @@ exports.getMyStatus = async (req, res) => {
   }
 };
 
-/* ---------- REGISTER / UNREGISTER ---------- */
 exports.registerSolo = async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -504,7 +477,6 @@ exports.registerTeam = async (req, res) => {
     if ((t.teams || []).some((id) => String(id) === String(team._id))) {
       return res.status(400).json({ message: "Team is already registered" });
     }
-    // block if any member registered solo
     const memberIds = team.members.map((m) => String(m));
     const hasSoloMember = (t.soloPlayers || []).some((uid) => memberIds.includes(String(uid)));
     if (hasSoloMember) {
@@ -553,7 +525,6 @@ exports.unregisterTeam = async (req, res) => {
   }
 };
 
-/* ---------- ADMIN REMOVE ---------- */
 exports.adminRemoveSolo = async (req, res) => {
   try {
     const t = await Tournament.findById(req.params.id);
@@ -578,7 +549,6 @@ exports.adminRemoveTeam = async (req, res) => {
   }
 };
 
-/* ---------- BRACKET ---------- */
 exports.generateBracket = async (req, res) => {
   try {
     const t = await Tournament.findById(req.params.id);
@@ -600,7 +570,6 @@ exports.generateBracket = async (req, res) => {
       return res.status(400).json({ message: "Not enough participants to generate a bracket" });
     }
 
-    // 3× shuffle
     let order = participants.slice();
     order = fisherYatesShuffle(order);
     order = fisherYatesShuffle(order);
@@ -615,7 +584,6 @@ exports.generateBracket = async (req, res) => {
       rounds,
     };
 
-    // no auto winners; just move single entrants up one round
     promoteByesOneRound(bd);
 
     t.bracketData = bd;
@@ -658,7 +626,6 @@ exports.getBracket = async (req, res) => {
     let bd = t.bracketData;
     if (!bd) return res.json({ title: t.title, bracketData: null });
 
-    // If any participant is missing a label, enrich and persist
     const needsLabel =
       (bd.participants || []).some((p) => p && !p.label) ||
       (bd.rounds || []).some((r) => r.some((m) =>
@@ -710,18 +677,15 @@ exports.setMatchResult = async (req, res) => {
   }
 };
 
-// ----------------- MATCH MEDIA HELPERS -----------------
 function ensureMedia(bd, r, m) {
   if (!bd?.rounds || !bd.rounds[r] || !bd.rounds[r][m]) {
     throw new Error("Match not found");
   }
   const match = bd.rounds[r][m];
-  if (!match.media) match.media = { videos: [], images: [] }; // initialize if missing
+  if (!match.media) match.media = { videos: [], images: [] };
   return match.media;
 }
 
-// GET /api/tournaments/:id/matches/:r/:m/media
-// ---------- MATCH MEDIA (list / upload / delete) ----------
 exports.getMatchMedia = async (req, res) => {
   try {
     const { id } = req.params;
@@ -729,7 +693,6 @@ exports.getMatchMedia = async (req, res) => {
     const m = Number(req.params.m);
     const matchId = `r=${r}&m=${m}`;
 
-    // (Optional) title for header
     const t = await Tournament.findById(id).select("title");
     const title = t?.title || "";
 
@@ -753,11 +716,6 @@ exports.getMatchMedia = async (req, res) => {
   }
 };
 
-// At top
-// top of file (ensure this exists)
-
-// POST /api/tournaments/:id/matches/:r/:m/media
-// multipart: "files"[] + body.kind = "video" | "image"
 exports.uploadMatchMedia = async (req, res) => {
   try {
     const { id } = req.params;
@@ -769,7 +727,6 @@ exports.uploadMatchMedia = async (req, res) => {
       return res.status(400).json({ message: "kind must be 'image' or 'video'" });
     }
 
-    // Ensure tournament exists (and avoid ObjectId cast surprises)
     const t = await Tournament.findById(id).select("_id");
     if (!t) return res.status(404).json({ message: "Tournament not found" });
 
@@ -778,11 +735,10 @@ exports.uploadMatchMedia = async (req, res) => {
       return res.status(400).json({ message: "No files uploaded (field name must be 'files')" });
     }
 
-    // Validate mimes against what multer allows (helps surface which file was rejected)
     const allowed = new Set([
       "image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif",
       "video/mp4", "video/webm", "video/ogg", "video/quicktime",
-    ]); // matches backend/utils/uploader.js:contentReference[oaicite:6]{index=6}
+    ]);
 
     for (const f of files) {
       if (!allowed.has(f.mimetype)) {
@@ -792,9 +748,6 @@ exports.uploadMatchMedia = async (req, res) => {
 
     const matchId = `r=${r}&m=${m}`;
 
-    // Build the filePath exactly how uploader stores on disk:
-    // uploader puts images in uploads/images and videos in uploads/videos:contentReference[oaicite:7]{index=7}
-    // build docs to insert
     const docs = files.map((f) => {
       const isImage = /^image\//i.test(f.mimetype);
       const sub = isImage ? "images" : "videos";
@@ -805,7 +758,7 @@ exports.uploadMatchMedia = async (req, res) => {
         matchId,
         title: f.originalname,
         description: "",
-        filePath: relPath,          // keep relative in DB
+        filePath: relPath,
         externalUrl: "",
         thumbnailUrl: "",
         category: "Full Match",
@@ -817,12 +770,10 @@ exports.uploadMatchMedia = async (req, res) => {
 
     await Media.insertMany(docs);
 
-    // fresh list
     const items = await Media.find({ tournament: id, matchId, visibility: "Public" })
       .sort({ createdAt: -1 })
       .lean();
 
-    // ⬇️ ensure absolute URLs in the API response
     const videos = items
       .filter(x => x.kind === "video")
       .map(x => ({
@@ -841,7 +792,6 @@ exports.uploadMatchMedia = async (req, res) => {
 
     return res.status(201).json({ message: "Uploaded", media: { videos, images } });
   } catch (err) {
-    // Surface the real error to the client for this endpoint
     console.error("uploadMatchMedia error:", err);
     return res.status(500).json({ message: `Failed to upload match media: ${err.message || err}` });
   }

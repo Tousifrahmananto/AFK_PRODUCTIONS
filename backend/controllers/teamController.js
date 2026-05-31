@@ -1,11 +1,7 @@
-// controllers/teamController.js
 const Team = require("../models/Team");
 const User = require("../models/User");
-const Notification = require("../models/Notification"); // <-- use model directly
+const Notification = require("../models/Notification");
 
-/* ----------------------------- helper functions ---------------------------- */
-
-// Ensure legacy teams have a game set so future validations won't fail
 async function ensureTeamHasGame(teamId) {
   const t = await Team.findById(teamId).select("game").lean();
   if (t && (!t.game || t.game === "")) {
@@ -31,23 +27,16 @@ const getTeamPublic = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch team" });
   }
 };
-// Common populate shape used by the UI
 function populateTeam(q) {
   return q
     .populate("members", "username email role")
     .populate("captain", "username email role");
 }
 
-/**
- * Create & (optionally) emit a notification safely.
- * - Writes a Notification document
- * - Emits 'notification:new' to the recipient room if Socket.IO is available
- */
 async function safeNotify(req, {
   user, createdBy, team, title, message, link = "/", type = "team", meta = {}
 }) {
   try {
-    // 1) persist
     const doc = await Notification.create({
       user,
       createdBy,
@@ -61,7 +50,6 @@ async function safeNotify(req, {
       readAt: null,
     });
 
-    // 2) realtime emit (best-effort)
     const io = req.app?.get?.("io");
     if (io && user) {
       io.to(String(user)).emit("notification:new", {
@@ -80,15 +68,11 @@ async function safeNotify(req, {
   }
 }
 
-/* --------------------------------- controllers -------------------------------- */
-
-// List available Players (no team). TeamManager/Admin only.
 const listPlayers = async (req, res) => {
   try {
     if (req.user.role !== "TeamManager" && req.user.role !== "Admin") {
       return res.status(403).json({ message: "Admins or Team Managers only" });
     }
-    // ✅ only players with NO team
     const players = await User.find({
       role: "Player",
       $or: [{ team: null }, { team: { $exists: false } }],
@@ -246,17 +230,14 @@ const addMember = async (req, res) => {
 
     await ensureTeamHasGame(teamId);
 
-    // Atomic add (and skip full-schema validators)
     const updated = await Team.findOneAndUpdate(
       { _id: teamId },
       { $addToSet: { members: userId } },
       { new: true, runValidators: false }
     );
 
-    // ✅ ensure user now carries the team id
     await User.updateOne({ _id: userId }, { $set: { team: teamId } });
 
-    // Notify the added player
     const captainUser = await User.findById(team.captain).select("username").lean();
     await safeNotify(req, {
       user: userId,
@@ -297,17 +278,14 @@ const removeMember = async (req, res) => {
 
     await ensureTeamHasGame(teamId);
 
-    // Atomic pull
     const updated = await Team.findOneAndUpdate(
       { _id: teamId },
       { $pull: { members: userId } },
       { new: true, runValidators: false }
     );
 
-    // ✅ ensure the user’s team is cleared
     await User.updateOne({ _id: userId }, { $unset: { team: "" } });
 
-    // Notify the removed player
     await safeNotify(req, {
       user: userId,
       createdBy: team.captain,
@@ -360,5 +338,5 @@ module.exports = {
   addMember,
   removeMember,
   leaveTeam,
-  getTeamPublic, // <-- ensure this is exported
+  getTeamPublic,
 };

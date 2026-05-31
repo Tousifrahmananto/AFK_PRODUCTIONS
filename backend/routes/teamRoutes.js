@@ -19,7 +19,6 @@ router.post("/:teamId/add", auth, addMember);
 router.delete("/:teamId/remove/:userId", auth, removeMember);
 router.post("/:teamId/leave", auth, leaveTeam);
 
-// roster/public info for stat tools
 router.get("/:id", auth, getTeamPublic);
 
 module.exports = router;

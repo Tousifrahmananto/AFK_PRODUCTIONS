@@ -1,4 +1,3 @@
-// backend/routes/adRoutes.js
 const router = require("express").Router();
 const { protect } = require("../middlewares/authMiddleware");
 const AC = require("../controllers/adController");
@@ -9,13 +8,11 @@ const requireRole = (...roles) => (req, res, next) => {
     next();
 };
 
-// Sponsor/Partner/Admin manage own campaigns
 router.post("/", protect, requireRole("Sponsor", "Partner", "Admin"), AC.createAd);
 router.put("/:id", protect, requireRole("Sponsor", "Partner", "Admin"), AC.updateAd);
 router.delete("/:id", protect, requireRole("Sponsor", "Partner", "Admin"), AC.deleteAd);
 router.get("/mine", protect, requireRole("Sponsor", "Partner", "Admin"), AC.listMyAds);
 
-// Public placements
 router.get("/placement", AC.getAdsForPlacement);
 router.post("/:id/click", AC.clickAd);
 

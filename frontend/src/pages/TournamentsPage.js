@@ -9,7 +9,7 @@ import {
 } from "../services/tournamentService";
 import { AuthContext } from "../context/AuthContext";
 import { Link } from "react-router-dom";
-import AdSlot from "../components/AdSlot"; // ← added
+import AdSlot from "../components/AdSlot";
 
 export default function TournamentsPage() {
   const { user, token } = useContext(AuthContext);
@@ -47,7 +47,7 @@ export default function TournamentsPage() {
   };
 
   useEffect(() => {
-    load(); // eslint-disable-next-line
+    load();
   }, [token]);
 
   const doSolo = async (t) => {
@@ -78,9 +78,7 @@ export default function TournamentsPage() {
 
   return (
     <>
-      {/* Component-scoped styles */}
       <style>{`
-        /* ====== Tournaments Page layout (scoped) ====== */
         .tp-page {
           max-width: 1100px;
           margin: 0 auto;
@@ -96,14 +94,12 @@ export default function TournamentsPage() {
         .tp-sub { margin: 0 0 22px; opacity: .7; }
         .tp-empty { text-align: center; opacity: .8; padding: 48px 0; }
 
-        /* grid of cards */
         .tour-grid {
           display: grid;
           grid-template-columns: repeat(12, 1fr);
           gap: 20px;
         }
 
-        /* 12-col responsive: 12 on mobile, 6 on tablet, 4 on desktop */
         .tour-card {
           grid-column: span 12;
           background: #0b0b0f;
@@ -115,7 +111,6 @@ export default function TournamentsPage() {
         @media (min-width: 680px)  { .tour-card { grid-column: span 6; } }
         @media (min-width: 1024px) { .tour-card { grid-column: span 4; } }
 
-        /* head */
         .tour-head {
           display: flex;
           align-items: center;
@@ -139,7 +134,6 @@ export default function TournamentsPage() {
         .tour-badge.live     { color: #22c55e; border-color: #1e9d4b; background:#0c1a14; }
         .tour-badge.completed{ color: #a8b3cf; }
 
-        /* meta block */
         .tour-meta {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -150,7 +144,6 @@ export default function TournamentsPage() {
         }
         .meta-label { opacity: .65; margin-right: 6px; }
 
-        /* actions */
         .tour-actions {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -158,7 +151,6 @@ export default function TournamentsPage() {
         }
         @media (max-width: 480px) { .tour-actions { grid-template-columns: 1fr; } }
 
-        /* ==== animated neon border buttons (white→gray) ==== */
         .btn-neon {
           position: relative;
           display: inline-block;
@@ -191,7 +183,6 @@ export default function TournamentsPage() {
         .btn-neon:hover { transform: translateY(-1px); box-shadow: 0 0 16px rgba(209,213,219,.2); }
         @keyframes tp-neon-scan { from { background-position: 0% 0; } to { background-position: 200% 0; } }
 
-        /* variants */
         .btn-primary { background:#166534; color:#fff; }
         .btn-primary:hover { background:#238636; }
         .btn-ghost   { background:#0b0b0b; color:#e6e6e6; }
@@ -205,7 +196,6 @@ export default function TournamentsPage() {
           <p className="tp-sub">Explore upcoming events and manage your registrations.</p>
         </div>
 
-        {/* === Sponsor/Partner Ads (non-intrusive) === */}
         <div style={{ margin: "0 0 18px 0" }}>
           <AdSlot category="TournamentPage" />
         </div>
