@@ -35,7 +35,7 @@ import CreateTournamentPage from "./pages/CreateTournamentPage";
 function AppFrame() {
   const { pathname } = useLocation();
 
-  const hideOn = new Set(["/login", "/register", "/dashboard", "/"]);
+  const hideOn = new Set(["/login", "/register"]);
   const showNavbar = !hideOn.has(pathname);
 
   return (

@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { io as socketIO } from "socket.io-client";
 import { AuthContext } from "../context/AuthContext";
+import "./Navbar.css";
 
 import { API_ORIGIN as API } from "../services/apiConfig";
 const AX = axios.create({ baseURL: API });
@@ -15,7 +16,35 @@ export default function Navbar() {
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([]);
-  const socketRef = useRef(null);
+  const headerRef = useRef(null);
+  const menuRef = useRef(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMenuOpen(false);
+    setOpen(false);
+    headerRef.current?.querySelectorAll("details").forEach(detail => { detail.open = false; });
+  }, [pathname]);
+
+  useEffect(() => {
+    const closeMenus = event => {
+      if (event.type === "keydown" && event.key !== "Escape") return;
+      if (event.type === "pointerdown" && headerRef.current?.contains(event.target)) return;
+      setOpen(false);
+      setMenuOpen(false);
+      headerRef.current?.querySelectorAll("details").forEach(detail => {
+        if (detail.open && event.type === "keydown") detail.querySelector("summary")?.focus();
+        detail.open = false;
+      });
+      if (event.type === "keydown" && menuOpen) menuRef.current?.focus();
+    };
+    document.addEventListener("pointerdown", closeMenus);
+    document.addEventListener("keydown", closeMenus);
+    return () => {
+      document.removeEventListener("pointerdown", closeMenus);
+      document.removeEventListener("keydown", closeMenus);
+    };
+  }, [menuOpen]);
 
   const authCfg = useMemo(
     () => (token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
@@ -26,7 +55,6 @@ export default function Navbar() {
     if (!token || !user) return;
 
     const s = socketIO(API, { auth: { token }, withCredentials: true, transports: ["websocket"] });
-    socketRef.current = s;
 
     s.on("notify", (n) => {
       setUnread((u) => u + 1);
@@ -79,17 +107,14 @@ export default function Navbar() {
   };
 
   const role = user?.role;
-  const leftLinks = useMemo(() => {
-    const base = [
-      { to: "/tournaments", label: "Tournaments" },
-      { to: "/browse", label: "Browse" },
-      { to: "/leaderboard", label: "Leaderboard" },
-    ];
+  const manageLinks = useMemo(() => {
+    const base = [];
 
     if (role === "Admin") {
       base.push({ to: "/admin/create-tournament", label: "Create Tournament" });
       base.push({ to: "/ads/mine", label: "Manage Ads" });
       base.push({ to: "/admin/user-moderation", label: "User Moderation" });
+      base.push({ to: "/admin/media", label: "Manage Media" });
     }
     if (role === "TeamManager") {
       base.push({ to: "/create-team", label: "Create Team" });
@@ -105,103 +130,46 @@ export default function Navbar() {
   if (isAuthPage) return null;
 
   return (
-    <header className="nav-wrap">
-      <nav className="nav">
-        <div className="left">
-          <Link to="/dashboard" className="brand">AFK Productions</Link>
-          {leftLinks.map((l) => (
-            <Link key={l.to} to={l.to}>{l.label}</Link>
-          ))}
-          <NavLink
-            to="/media"
-            style={({ isActive }) => ({
-              color: '#e6edf3',
-              textDecoration: 'none',
-              marginRight: 14,
-              fontWeight: isActive ? 800 : 400,
-            })}
-          >
-            Media
-          </NavLink>
+    <header className="afk-header" ref={headerRef}>
+      <nav className="afk-nav" aria-label="Main navigation">
+        <Link to="/dashboard" className="afk-brand" aria-label="AFK Productions home"><span className="afk-brand-mark" aria-hidden="true">AFK</span><span>AFK <span className="afk-brand-sub">Productions</span></span></Link>
+        <button ref={menuRef} type="button" className="afk-menu-toggle" aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-expanded={menuOpen} aria-controls="afk-navigation" onClick={() => setMenuOpen(value => !value)}><span aria-hidden="true">{menuOpen ? "✕" : "☰"}</span></button>
+        <div id="afk-navigation" className={"afk-nav-links " + (menuOpen ? "is-open" : "")}>
+          {[
+            { to: "/tournaments", label: "Tournaments" },
+            { to: "/browse", label: "Browse" },
+            { to: "/leaderboard", label: "Leaderboard" },
+            { to: "/media", label: "Media" },
+          ].map(link => <NavLink key={link.to} to={link.to} className={({ isActive }) => "afk-nav-link" + (isActive ? " is-active" : "")}>{link.label}</NavLink>)}
+          {manageLinks.length > 0 && <details className="afk-manage">
+            <summary className={"afk-nav-link" + (manageLinks.some(link => pathname === link.to) ? " is-active" : "")}>{role === "Admin" ? "Admin tools" : "Manage"}<span aria-hidden="true">⌄</span></summary>
+            <div className="afk-manage-panel"><span className="afk-menu-caption">{role === "Admin" ? "Administration" : "Your workspace"}</span>
+              {manageLinks.map(link => <NavLink key={link.to} to={link.to} className="afk-manage-link">{link.label}</NavLink>)}
+            </div>
+          </details>}
         </div>
-
-        <div className="right">
-          {user ? (
-            <>
-              <div className="notif">
-                <button
-                  type="button"
-                  className="bell"
-                  onClick={() => setOpen((v) => !v)}
-                  title="Notifications"
-                >
-                  <span className="bell-icon">🔔</span>
-                  {unread > 0 && <span className="badge">{unread}</span>}
-                </button>
-                {open && (
-                  <div className="dropdown">
-                    <div className="dropdown-header">
-                      <span>Notifications</span>
-                      <button className="link" onClick={markAllRead}>Mark all read</button>
-                    </div>
-                    <div className="dropdown-body">
-                      {items.length === 0 ? (
-                        <div className="empty">No notifications</div>
-                      ) : (
-                        items.map((n) => (
-                          <button
-                            key={n._id}
-                            className={`notif-item ${n.read ? "read" : "unread"}`}
-                            onClick={() => openItem(n)}
-                          >
-                            <div className="title">{n.title || "Notification"}</div>
-                            <div className="msg">{n.message}</div>
-                            <div className="time">{new Date(n.createdAt).toLocaleString()}</div>
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <Link to="/profile">My Profile</Link>
-              <button className="logout" onClick={logout}>Logout</button>
-            </>
-          ) : (
-            <>
-              <Link to="/login">Login</Link>
-              <Link to="/register">Register</Link>
-            </>
-          )}
+        <div className={"afk-nav-account " + (menuOpen ? "is-open" : "")}>
+          {user ? <>
+            <div className="afk-notif">
+              <button type="button" className="afk-bell" onClick={() => setOpen(value => !value)} aria-label={unread > 0 ? "Notifications, " + unread + " unread" : "Notifications"} aria-expanded={open} aria-controls="afk-notifications">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+                {unread > 0 && <span className="afk-badge">{unread > 99 ? "99+" : unread}</span>}
+              </button>
+              {open && <div id="afk-notifications" className="afk-notifications">
+                <div className="afk-notifications-heading"><strong>Notifications</strong><button type="button" onClick={markAllRead}>Mark all read</button></div>
+                <div className="afk-notifications-body">
+                  {items.length === 0 ? <div className="afk-notifications-empty">You’re all caught up.</div> : items.map(n => <button type="button" key={n._id} className={"afk-notification" + (n.read ? "" : " is-unread")} onClick={() => openItem(n)}>
+                    <strong>{n.title || "Notification"}</strong><span>{n.message}</span><time dateTime={n.createdAt}>{new Date(n.createdAt).toLocaleString()}</time>
+                  </button>)}
+                </div>
+                <Link to="/notifications" className="afk-notifications-all">View all notifications →</Link>
+              </div>}
+            </div>
+            <Link to="/profile" className="afk-profile" aria-label="My Profile"><span className="afk-avatar" aria-hidden="true">{(user.username || "P").slice(0, 1).toUpperCase()}</span><span className="afk-profile-text"><strong>{user.username || "My Profile"}</strong><small>{role === "TeamManager" ? "Team Manager" : role}</small></span></Link>
+            <button type="button" className="afk-logout" onClick={logout}>Log out</button>
+          </> : <><Link to="/login" className="afk-signin">Log in</Link><Link to="/register" className="afk-join">Join AFK <span aria-hidden="true">↗</span></Link></>}
         </div>
       </nav>
-
-      <style>{`
-        .nav-wrap{position:sticky;top:0;z-index:50;background:#0d0f15;border-bottom:1px solid #23263a}
-        .nav{max-width:1200px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
-        .left a,.right a{color:#e6edf3;text-decoration:none;margin-right:14px}
-        .brand{font-weight:800}
-        .right{display:flex;align-items:center;gap:12px}
-        .logout{background:#1f6feb;color:#fff;border:0;border-radius:8px;padding:8px 12px;cursor:pointer}
-
-        .notif{position:relative}
-        .bell{position:relative;background:#161b22;color:#e6edf3;border:1px solid #30363d;border-radius:10px;padding:6px 10px;cursor:pointer}
-        .bell-icon{font-size:16px;line-height:1}
-        .badge{position:absolute;top:-6px;right:-6px;background:#098658;color:#fff;border-radius:999px;font-size:10px;padding:2px 6px}
-
-        .dropdown{position:absolute;right:0;top:38px;width:320px;background:#0d1117;border:1px solid #30363d;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.45);overflow:hidden}
-        .dropdown-header{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #21262d;color:#c9d1d9}
-        .dropdown-header .link{background:none;border:0;color:#58a6ff;cursor:pointer}
-        .dropdown-body{max-height:360px;overflow:auto}
-        .empty{padding:12px;color:#8b949e}
-        .notif-item{display:block;width:100%;text-align:left;background:#0d1117;border:0;border-bottom:1px solid #161b22;padding:10px 12px;cursor:pointer}
-        .notif-item.unread{background:#0e141a}
-        .notif-item:hover{background:#0f1620}
-        .notif-item .title{color:#e6edf3;font-weight:600;margin-bottom:2px}
-        .notif-item .msg{color:#9aa4ad;font-size:13px}
-        .notif-item .time{color:#6e7681;font-size:12px;margin-top:4px}
-      `}</style>
     </header>
   );
 }
