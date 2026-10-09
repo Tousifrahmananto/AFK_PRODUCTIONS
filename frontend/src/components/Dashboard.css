@@ -1,5 +1,5 @@
 @font-face { font-family: "AFK Inter"; src: url("../assets/Inter.woff2") format("woff2"); font-style: normal; font-weight: 400 800; font-display: swap; }
-.afk-landing { --landing-accent: #f4f4f4; background: #090909; color: #f5f5f5; font-family: "AFK Inter", "Segoe UI", sans-serif; min-height: 100vh; }
+.afk-landing { --landing-accent: #f4f4f4; background: var(--app-bg); color: #f5f5f5; font-family: "AFK Inter", "Segoe UI", sans-serif; min-height: 100vh; }
 .afk-landing *, .afk-landing *::before, .afk-landing *::after { box-sizing: border-box; }
 .landing-shell { max-width: 1440px; margin: auto; padding: 32px clamp(24px, 6.67vw, 96px) 24px; }
 .landing-brandline, .landing-footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; }

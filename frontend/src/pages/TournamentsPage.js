@@ -102,7 +102,7 @@ export default function TournamentsPage() {
 
         .tour-card {
           grid-column: span 12;
-          background: #0b0b0f;
+          background: var(--app-panel);
           border: 1px solid #23263a;
           border-radius: 14px;
           padding: 18px 18px 16px;

@@ -40,7 +40,7 @@ function MemberLayout() {
 
 function AppFrame() {
   return (
-    <div style={{ background: "#0b0d12", color: "#E6F0FF", minHeight: "100vh" }}>
+    <div className="app-frame" style={{ background: "var(--app-bg)", color: "var(--app-text)", minHeight: "100vh" }}>
 
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />

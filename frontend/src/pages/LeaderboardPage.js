@@ -92,10 +92,10 @@ export default function LeaderboardPage() {
     );
 }
 
-const wrap = { minHeight: "100vh", background: "#0f1115", color: "#e8ecf2", padding: 16, display: "flex", justifyContent: "center" };
+const wrap = { minHeight: "100vh", background: "var(--app-bg)", color: "#e8ecf2", padding: 16, display: "flex", justifyContent: "center" };
 const panel = { width: "100%", maxWidth: 1100, display: "grid", gap: 12 };
-const card = { background: "#151922", border: "1px solid #232838", borderRadius: 12, padding: 12 };
-const input = { padding: "10px 12px", borderRadius: 10, background: "#0f1320", border: "1px solid #232838", color: "#e8ecf2" };
-const table = { width: "100%", borderCollapse: "collapse", background: "#0f1320" };
+const card = { background: "var(--app-panel)", border: "1px solid #232838", borderRadius: 12, padding: 12 };
+const input = { padding: "10px 12px", borderRadius: 10, background: "var(--app-input)", border: "1px solid #232838", color: "#e8ecf2" };
+const table = { width: "100%", borderCollapse: "collapse", background: "var(--app-input)" };
 const th = { textAlign: "left", padding: "10px 12px", borderBottom: "1px solid #232838", background: "#111629", position: "sticky", top: 0 };
 const td = { padding: "10px 12px", borderBottom: "1px solid #232838" };

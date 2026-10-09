@@ -119,14 +119,14 @@ export default function AdminMediaPage() {
     };
 
     const card = {
-        background: "#151922",
+        background: "var(--app-panel)",
         border: "1px solid #232838",
         borderRadius: 12,
         padding: 12,
     };
 
     return (
-        <div style={{ padding: 16, color: "#e8ecf2", background: "#0f1115", minHeight: "100vh" }}>
+        <div style={{ padding: 16, color: "#e8ecf2", background: "var(--app-bg)", minHeight: "100vh" }}>
             <h2>Admin · Media Manager</h2>
 
             <div style={{ ...card, marginBottom: 14 }}>
@@ -241,7 +241,7 @@ export default function AdminMediaPage() {
                         <div
                             key={m._id}
                             style={{
-                                background: "#151922",
+                                background: "var(--app-panel)",
                                 border: "1px solid #232838",
                                 borderRadius: 10,
                                 padding: 10,
@@ -257,7 +257,7 @@ export default function AdminMediaPage() {
                                         border: "1px solid #2a3350",
                                         borderRadius: 999,
                                         marginLeft: 6,
-                                        background: "#101523",
+                                        background: "var(--app-panel)",
                                     }}
                                 >
                                     {m.kind}

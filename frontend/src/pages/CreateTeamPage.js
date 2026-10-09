@@ -68,7 +68,7 @@ export default function CreateTeamPage() {
         <div className="container mt-10">
             <div
                 className="card p-6"
-                style={{ maxWidth: 600, margin: "auto", background: "#1f1f2e" }}
+                style={{ maxWidth: 600, margin: "auto", background: "var(--app-panel)" }}
             >
                 <h2 className="text-2xl font-bold mb-4 text-center">Create Team</h2>
                 <form onSubmit={submit} className="space-y-4">

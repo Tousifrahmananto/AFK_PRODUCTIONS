@@ -58,7 +58,7 @@ export default function CreateTournamentPage() {
 
   const onChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
+    setForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value, ...(name === 'game' ? { vetoSettings: { enabled: false } } : {}) }));
   };
 
   const pickForEdit = (t) => {
@@ -125,24 +125,25 @@ export default function CreateTournamentPage() {
     <div className="ctp-root">
       <style>{`
         .ctp-root {
-          background:#111111; color:#ececec; min-height:100vh;
+          background:var(--app-bg); color:var(--app-text); min-height:100vh;
           padding:20px 10px 40px; display:flex; justify-content:center;
         }
         .ctp-container { width:100%; max-width:900px; min-width:0; }
         .ctp-card {
-          background:#191919; border:1px solid #303030; border-radius:12px; overflow-x:auto;
+          background:var(--app-panel); border:1px solid #303030; border-radius:12px; overflow-x:auto;
           padding:20px; margin-bottom:22px; box-shadow:0 6px 16px rgba(0,0,0,.4);
         }
         form { display:grid; gap:14px; }
         .row-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
         @media(max-width:640px){ .row-2 { grid-template-columns:1fr; } }
         label { font-size:13px; color:#a2a2a2; margin-bottom:4px; display:block; }
-        input, select, textarea {
+        .ctp-root input:not([type="checkbox"]):not([type="radio"]), .ctp-root select, .ctp-root textarea {
           width:100%; padding:10px; border-radius:8px;
-          border:1px solid #2f2f2f; background:#151515; color:#fff;
+          border:1px solid #2f2f2f; background:var(--app-input); color:#fff;
           box-sizing:border-box; max-width:100%;
         }
         textarea { resize:vertical; min-height:80px; }
+        .ctp-root input[type="checkbox"] { width:18px; height:18px; padding:0; margin:0 8px 0 0; vertical-align:middle; accent-color:#eee; }
         .actions { display:flex; gap:10px; margin-top:8px; flex-wrap:wrap; }
         .ctp-root .btn { border:1px solid #555; border-radius:8px; padding:8px 14px; font-weight:600; cursor:pointer; background:#eee; color:#111; }
         .ctp-root .btn:hover { background:#ccc; color:#111; }
@@ -168,8 +169,9 @@ export default function CreateTournamentPage() {
 
             <div className="row-2">
               <div>
-                <label>Game</label>
-                <input name="game" value={form.game} onChange={onChange} required />
+                <label htmlFor="tournament-game">Game</label>
+                <input id="tournament-game" name="game" list="tournament-games" placeholder="Choose or enter a game" value={form.game} onChange={onChange} required />
+                <datalist id="tournament-games"><option value="Valorant" /><option value="CS2" /></datalist>
               </div>
               <div>
                 <label>Format</label>
@@ -245,7 +247,7 @@ export default function CreateTournamentPage() {
               <textarea name="rules" value={form.rules} onChange={onChange} />
             </div>
 
-            <VetoSettingsEditor value={form.vetoSettings} game={form.game} token={token} onChange={vetoSettings => setForm(f => ({ ...f, vetoSettings }))} />
+            <VetoSettingsEditor value={form.vetoSettings} game={form.game} token={token} onGameChange={game => setForm(f => ({ ...f, game, vetoSettings: { enabled: false } }))} onChange={vetoSettings => setForm(f => ({ ...f, vetoSettings }))} />
             <div className="actions">
               <button type="submit" className="btn btn-primary">{isEditing ? "Update" : "Create"}</button>
               {isEditing && <button type="button" className="btn btn-secondary" onClick={resetForm}>Cancel</button>}

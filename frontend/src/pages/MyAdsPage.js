@@ -75,12 +75,12 @@ export default function MyAdsPage() {
   };
 
   return (
-    <div style={{ padding: 16, color: "#e8ecf2", background: "#0f1115", minHeight: "100vh" }}>
+    <div style={{ padding: 16, color: "#e8ecf2", background: "var(--app-bg)", minHeight: "100vh" }}>
       <h2 style={{ marginBottom: 12 }}>My Ad Campaigns</h2>
 
       <div
         style={{
-          background: "#151922",
+          background: "var(--app-panel)",
           border: "1px solid #232838",
           borderRadius: 12,
           padding: 12,
@@ -161,7 +161,7 @@ export default function MyAdsPage() {
             <div
               key={ad._id}
               style={{
-                background: "#151922",
+                background: "var(--app-panel)",
                 border: "1px solid #232838",
                 borderRadius: 12,
                 padding: 10,

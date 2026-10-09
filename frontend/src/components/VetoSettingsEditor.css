@@ -1,0 +1,9 @@
+.veto-settings { min-width:0; border:1px solid var(--app-border); border-radius:10px; padding:16px; background:var(--app-panel); color:var(--app-text); }
+.veto-settings > label { display:block; margin:12px 0; }
+.veto-settings select { display:block; width:100%; margin-top:8px; }
+.veto-settings .veto-check { display:flex; align-items:center; gap:10px; color:var(--app-text); cursor:pointer; }
+.veto-settings input[type="checkbox"] { width:18px; height:18px; flex:0 0 18px; padding:0; margin:0; accent-color:#eee; }
+.veto-settings input:disabled { cursor:not-allowed; }
+.veto-settings p { line-height:1.6; }
+.veto-settings button { padding:10px 14px; border:1px solid var(--app-border); border-radius:8px; background:var(--app-input); color:var(--app-text); cursor:pointer; }
+.veto-settings :focus-visible { outline:2px solid #fff; outline-offset:3px; }

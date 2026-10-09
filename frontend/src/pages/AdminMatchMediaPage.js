@@ -83,7 +83,7 @@ export default function AdminMatchMediaPage() {
         h1: { fontSize: 22, fontWeight: 700, marginBottom: 8 },
         sub: { color: "#94a3b8", marginBottom: 18 },
         card: {
-            background: "#0f172a",
+            background: "var(--app-panel)",
             border: "1px solid #1f2937",
             borderRadius: 12,
             padding: 16,
@@ -112,13 +112,13 @@ export default function AdminMatchMediaPage() {
         grid: { display: "grid", gap: 12, gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))" },
         mediaCard: {
             border: "1px solid #1f2937",
-            background: "#0b1220",
+            background: "var(--app-input)",
             borderRadius: 10,
             padding: 10,
         },
         label: { fontSize: 12, color: "#94a3b8", marginBottom: 6 },
         input: {
-            background: "#0b1220",
+            background: "var(--app-input)",
             border: "1px solid #1f2937",
             color: "#e5e7eb",
             padding: "10px 12px",
@@ -172,7 +172,7 @@ export default function AdminMatchMediaPage() {
                                             <PrivateMedia as="video"
                                                 src={v.url}
                                                 controls
-                                                style={{ width: "100%", borderRadius: 8, background: "#111827" }}
+                                                style={{ width: "100%", borderRadius: 8, background: "var(--app-panel)" }}
                                             />
                                             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
                                                 <button
@@ -217,7 +217,7 @@ export default function AdminMatchMediaPage() {
                                             <PrivateMedia open
                                                 src={img.url}
                                                 alt={img.originalName || ""}
-                                                style={{ width: "100%", borderRadius: 8, background: "#111827" }}
+                                                style={{ width: "100%", borderRadius: 8, background: "var(--app-panel)" }}
                                             />
 
                                             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>

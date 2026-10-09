@@ -424,12 +424,12 @@ export default function AdminMatchStatsPage() {
   );
 }
 
-const wrap = { minHeight: "100vh", background: "#0f1115", color: "#e8ecf2", padding: 16, display: "flex", justifyContent: "center" };
+const wrap = { minHeight: "100vh", background: "var(--app-bg)", color: "#e8ecf2", padding: 16, display: "flex", justifyContent: "center" };
 const panel = { width: "100%", maxWidth: 1000, display: "grid", gap: 12 };
-const card = { background: "#151922", border: "1px solid #232838", borderRadius: 16, padding: 24, marginBottom: 18, boxShadow: "0 2px 12px #0002" };
-const input = { width: "100%", padding: "14px 16px", borderRadius: 10, background: "#0f1320", border: "1px solid #232838", color: "#e8ecf2", boxSizing: "border-box" };
+const card = { background: "var(--app-panel)", border: "1px solid #232838", borderRadius: 16, padding: 24, marginBottom: 18, boxShadow: "0 2px 12px #0002" };
+const input = { width: "100%", padding: "14px 16px", borderRadius: 10, background: "var(--app-input)", border: "1px solid #232838", color: "#e8ecf2", boxSizing: "border-box" };
 const label = { fontSize: 12, color: "#a8b0bf", marginBottom: 4, display: "block" };
 const btn = { padding: "9px 12px", borderRadius: 10, background: "#232a41", color: "#e8ecf2", border: "1px solid #2e3753", cursor: "pointer" };
-const btnAlt = { ...btn, background: "#101523", border: "1px solid #2a3350" };
+const btnAlt = { ...btn, background: "var(--app-panel)", border: "1px solid #2a3350" };
 const btnPrimary = { ...btn, background: "#1f6feb", border: 0 };
 const headCell = { fontSize: 12, color: "#9aa3b2", padding: "0 6px" };

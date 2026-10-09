@@ -41,7 +41,7 @@ const styles = {
   wrap: { display: "flex", justifyContent: "center", padding: "40px 16px" },
   card: {
     width: "min(900px, 96%)",
-    background: "#141821",
+    background: "var(--app-panel)",
     border: "1px solid #1f2430",
     borderRadius: 14,
     padding: 24,

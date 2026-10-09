@@ -147,7 +147,7 @@ export default function TournamentsBrowsePage() {
     return (
         <div className="tb-root">
             <style>{`
-        .tb-root { --bg:#0f1115; --panel:#151922; --line:#232838; --text:#e8ecf2; --muted:#9aa3b2;
+        .tb-root { --bg:var(--app-bg); --panel:var(--app-panel); --line:#232838; --text:#e8ecf2; --muted:#9aa3b2;
           --pill:#10141c; --accent:#4f8cff; min-height:100vh; background:var(--bg); color:var(--text);
           padding:24px 12px 60px; display:flex; justify-content:center; }
         .tb-container { width:100%; max-width:1050px; }
@@ -156,14 +156,14 @@ export default function TournamentsBrowsePage() {
         .tb-card + .tb-card { margin-top:18px; }
         .tb-filter { display:grid; gap:10px; grid-template-columns: 1fr 140px 160px 160px 160px 130px; }
         @media(max-width:1000px){ .tb-filter { grid-template-columns: 1fr 1fr 1fr; } }
-        input, select { width:100%; background:#11151d; border:1px solid var(--line); color:var(--text);
+        input, select { width:100%; background:var(--app-input); border:1px solid var(--line); color:var(--text);
           border-radius:10px; padding:9px 11px; outline:none; }
         .check { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:13px; }
 
         .tb-grid { display:grid; gap:12px; grid-template-columns:repeat(3, 1fr); }
         @media(max-width:1024px){ .tb-grid { grid-template-columns:repeat(2, 1fr); } }
         @media(max-width:680px){ .tb-grid { grid-template-columns: 1fr; } }
-        .tb-item { background:#11151d; border:1px solid var(--line); border-radius:12px; padding:12px; }
+        .tb-item { background:var(--app-input); border:1px solid var(--line); border-radius:12px; padding:12px; }
         .tb-item h4 { margin:0 0 6px; font-size:16px; }
         .row { display:flex; gap:8px; flex-wrap:wrap; }
         .pill { background:var(--pill); border:1px solid var(--line); color:var(--muted);
@@ -323,7 +323,7 @@ export default function TournamentsBrowsePage() {
                                         return (
                                             <div key={rIdx} style={{
                                                 flex: "0 0 auto",
-                                                background: "#11151d",
+                                                background: "var(--app-input)",
                                                 border: "1px solid #232838",
                                                 borderRadius: 10,
                                                 padding: "10px 14px",

@@ -303,7 +303,7 @@ export default function BracketPage() {
 
 const wrap = {
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #0c0c0c 0%, #151515 50%, #0e0e0e 100%)",
+    background: "var(--app-bg)",
     color: "#ececec",
     padding: "32px clamp(12px, 2vw, 40px) 64px",
     minWidth: 0,

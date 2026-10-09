@@ -18,7 +18,7 @@ export default function ToastHost({ children }) {
             <div className="toaster">
                 <style>{`
           .toaster{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:9999}
-          .toast{background:#151922;border:1px solid #232838;color:#e8ecf2;border-radius:10px;padding:10px 12px;box-shadow:0 6px 16px rgba(0,0,0,.4);max-width:320px}
+          .toast{background:var(--app-panel);border:1px solid #232838;color:#e8ecf2;border-radius:10px;padding:10px 12px;box-shadow:0 6px 16px rgba(0,0,0,.4);max-width:320px}
           .toast.ok{border-color:#2e7d52}
           .toast.err{border-color:#b23b3b}
         `}</style>

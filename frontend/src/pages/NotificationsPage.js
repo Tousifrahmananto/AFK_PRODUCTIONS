@@ -44,7 +44,7 @@ export default function NotificationsPage() {
     <div className="container mt-8">
       <style>{`
         .notif-card {
-          background: #12131c;
+          background: var(--app-panel);
           border: 1px solid #23263A;
           border-radius: 14px;
           padding: 16px;

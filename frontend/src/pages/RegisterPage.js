@@ -75,7 +75,7 @@ export default function RegisterPage() {
 
 const wrap = {
     minHeight: "100vh",
-    background: "#0f1115",
+    background: "var(--app-bg)",
     display: "grid",
     placeItems: "center",
     padding: 16,
@@ -83,7 +83,7 @@ const wrap = {
 const card = {
     width: "100%",
     maxWidth: 420,
-    background: "#151922",
+    background: "var(--app-panel)",
     border: "1px solid #232838",
     borderRadius: 12,
     padding: 20,
@@ -94,7 +94,7 @@ const input = {
     width: "100%",
     padding: "10px 12px",
     borderRadius: 10,
-    background: "#0f1320",
+    background: "var(--app-input)",
     border: "1px solid #232838",
     color: "#e8ecf2",
     boxSizing: "border-box",

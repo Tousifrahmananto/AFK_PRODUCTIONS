@@ -18,7 +18,7 @@ export default function AdSlot({ category = "Homepage", game = "", tournament = 
     const ad = ads[0];
 
     return (
-        <div style={{ background: "#151922", border: "1px solid #232838", borderRadius: 12, padding: 10 }}>
+        <div style={{ background: "var(--app-panel)", border: "1px solid #232838", borderRadius: 12, padding: 10 }}>
             <div style={{ fontSize: 12, opacity: .7, marginBottom: 6 }}>{ad.category} Ad</div>
             {ad.imageUrl ? (
                 <PrivateMedia

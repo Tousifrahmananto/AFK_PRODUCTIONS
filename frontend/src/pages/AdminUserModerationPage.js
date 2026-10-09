@@ -83,12 +83,12 @@ export default function AdminUserModerationPage() {
     return (
         <div style={wrap}>
             <style>{`
-        .box{ background:#151922; border:1px solid #232838; border-radius:14px; padding:14px; max-width:1100px; width:100%;}
+        .box{ background:var(--app-panel); border:1px solid #232838; border-radius:14px; padding:14px; max-width:1100px; width:100%;}
         .hdr{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
         .grid{ display:grid; grid-template-columns: 1.8fr 1.6fr 1.2fr .8fr .8fr .8fr; gap:8px; align-items:center; }
         .head{ color:#9aa3b2; font-size:12px; }
-        input,select{ width:100%; background:#0f1320; border:1px solid #232838; color:#e8ecf2; border-radius:10px; padding:9px 11px; }
-        .pill{ padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid #2a3350; background:#101523; color:#c7d0e3 }
+        input,select{ width:100%; background:var(--app-input); border:1px solid #232838; color:#e8ecf2; border-radius:10px; padding:9px 11px; }
+        .pill{ padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid #2a3350; background:var(--app-panel); color:#c7d0e3 }
         .ban{ background:#5b1920; border:1px solid #74212a; color:#fff; border-radius:10px; padding:8px 10px; cursor:pointer; }
         .unban{ background:#165b2d; border:1px solid #1d7a3b; color:#fff; border-radius:10px; padding:8px 10px; cursor:pointer; }
       `}</style>
@@ -170,7 +170,7 @@ export default function AdminUserModerationPage() {
 
 const wrap = {
     minHeight: "100vh",
-    background: "#0f1115",
+    background: "var(--app-bg)",
     color: "#e8ecf2",
     padding: "24px 12px",
     display: "flex",

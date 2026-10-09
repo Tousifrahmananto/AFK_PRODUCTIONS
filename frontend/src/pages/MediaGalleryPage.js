@@ -52,14 +52,14 @@ export default function MediaGallery() {
     };
 
     const card = {
-        background: "#121826",
+        background: "var(--app-panel)",
         border: "1px solid #1f273a",
         borderRadius: 12,
         padding: 12,
     };
 
     return (
-        <div style={{ padding: 24, color: "#e8ecf2", background: "#0f1115", minHeight: "100vh" }}>
+        <div style={{ padding: 24, color: "#e8ecf2", background: "var(--app-bg)", minHeight: "100vh" }}>
             <h2 style={{ marginBottom: 8 }}>Media Showcase</h2>
 
             <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
@@ -68,7 +68,7 @@ export default function MediaGallery() {
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
                     style={{
-                        background: "#111827",
+                        background: "var(--app-panel)",
                         border: "1px solid #1f2937",
                         borderRadius: 8,
                         color: "#e5e7eb",
@@ -99,7 +99,7 @@ export default function MediaGallery() {
                                     padding: "2px 6px",
                                     border: "1px solid #2a3350",
                                     borderRadius: 999,
-                                    background: "#101523",
+                                    background: "var(--app-panel)",
                                 }}
                             >
                                 {m.kind}
