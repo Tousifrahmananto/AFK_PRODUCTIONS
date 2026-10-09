@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 
 const { protect: auth } = require("../middlewares/authMiddleware");
+const { isAdmin } = require('../middlewares/adminMiddleware');
+router.patch('/:teamId/manager', auth, isAdmin, require('../controllers/teamController').assignManager);
 const {
     listPlayers,
     createTeam,

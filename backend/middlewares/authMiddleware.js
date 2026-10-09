@@ -22,11 +22,13 @@ async function protect(req, res, next) {
             return res.status(401).json({ message: "Invalid token payload" });
         }
 
-        const user = await User.findById(userId).select("role banned isBanned");
+        const user = await User.findById(userId).select("role banned isBanned authVersion mustChangePassword");
         if (!user) return res.status(401).json({ message: "User no longer exists" });
         if (user.banned || user.isBanned) {
             return res.status(403).json({ message: "This account has been banned by an administrator." });
         }
+        if ((decoded.authVersion || 0) !== (user.authVersion || 0)) return res.status(401).json({ message: 'Session expired. Sign in again.' });
+        if (user.mustChangePassword && !['/api/auth/me', '/api/auth/change-password'].includes(req.originalUrl?.split('?')[0])) return res.status(403).json({ message: 'Change your temporary password before continuing', code: 'PASSWORD_CHANGE_REQUIRED' });
         req.user = { userId: String(user._id), role: user.role };
         return next();
     } catch (err) {

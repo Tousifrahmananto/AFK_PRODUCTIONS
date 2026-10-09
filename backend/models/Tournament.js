@@ -30,10 +30,11 @@ const tournamentSchema = new mongoose.Schema(
         entryFee: { type: String, default: "" },
 
         bracketData: { type: Object, default: null },
+        vetoSettings: { type: Object, default: () => ({ enabled: false }) },
 
         lastRegistrationActionBy: { type: String, default: "" },
     },
-    { timestamps: true }
+    { timestamps: true, optimisticConcurrency: true }
 );
 
 module.exports = mongoose.model("Tournament", tournamentSchema);

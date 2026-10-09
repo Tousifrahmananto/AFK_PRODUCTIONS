@@ -1,50 +1,50 @@
-.afk-header { position: sticky; top: 0; z-index: 50; background: rgba(13,16,22,.97); border-bottom: 1px solid #242b35; backdrop-filter: blur(16px); }
+.afk-header { position: sticky; top: 0; z-index: 50; background: rgba(15,15,15,.97); border-bottom: 1px solid #2a2a2a; backdrop-filter: blur(16px); }
 .afk-header * { box-sizing: border-box; }
 .afk-nav { max-width: 1280px; margin: auto; padding: 0 24px; min-height: 76px; display: flex; align-items: center; gap: 28px; }
-.afk-header a { color: #c1c8d3; text-decoration: none; }
+.afk-header a { color: #c7c7c7; text-decoration: none; }
 .afk-header button, .afk-header summary { font: inherit; cursor: pointer; }
-.afk-header :is(a,button,summary):focus-visible { outline: 2px solid #73e0ac; outline-offset: 4px; }
+.afk-header :is(a,button,summary):focus-visible { outline: 2px solid #c5c5c5; outline-offset: 4px; }
 .afk-brand { display: flex; gap: 11px; align-items: center; flex-shrink: 0; font-size: 15px; font-weight: 800; white-space: nowrap; color: #fff !important; }
-.afk-brand-mark { display: grid; place-items: center; width: 40px; height: 40px; background: #163a2e; border: 1px solid #2b6e52; border-radius: 12px; color: #86efbc; font-size: 12px; letter-spacing: -.4px; }
-.afk-brand-sub { display: block; font-size: 10px; letter-spacing: 1.7px; text-transform: uppercase; color: #94a3b8; margin-top: 2px; }
+.afk-brand-mark { display: grid; place-items: center; width: 40px; height: 40px; background: #313131; border: 1px solid #5e5e5e; border-radius: 12px; color: #d5d5d5; font-size: 12px; letter-spacing: -.4px; }
+.afk-brand-sub { display: block; font-size: 10px; letter-spacing: 1.7px; text-transform: uppercase; color: #a1a1a1; margin-top: 2px; }
 .afk-nav-links { display: flex; align-items: center; gap: 4px; }
 .afk-nav-link { display: flex; align-items: center; gap: 9px; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; white-space: nowrap; }
-.afk-nav-link:hover { background: #1a2029; color: #fff; }
-.afk-nav-link.is-active { background: #17362b; color: #86efbc; }
+.afk-nav-link:hover { background: #1f1f1f; color: #fff; }
+.afk-nav-link.is-active { background: #2f2f2f; color: #d5d5d5; }
 .afk-nav-account { display: flex; align-items: center; gap: 12px; margin-left: auto; }
-.afk-manage { position: relative; color: #c1c8d3; }
+.afk-manage { position: relative; color: #c7c7c7; }
 .afk-manage summary { list-style: none; font-size: 13px; font-weight: 600; }
 .afk-manage summary::-webkit-details-marker { display: none; }
-.afk-manage[open] summary { background: #1a2029; }
-.afk-manage-panel { position: absolute; left: 0; top: calc(100% + 12px); width: 230px; padding: 8px; background: #121820; border: 1px solid #2b3542; border-radius: 12px; box-shadow: 0 16px 40px #0006; }
-.afk-menu-caption { display: block; padding: 10px 12px; font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: #8c9bad; }
+.afk-manage[open] summary { background: #1f1f1f; }
+.afk-manage-panel { position: absolute; left: 0; top: calc(100% + 12px); width: 230px; padding: 8px; background: #171717; border: 1px solid #343434; border-radius: 12px; box-shadow: 0 16px 40px #0006; }
+.afk-menu-caption { display: block; padding: 10px 12px; font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: #999999; }
 .afk-manage-link { display: block; padding: 11px 12px; border-radius: 7px; font-size: 13px; }
-.afk-manage-link:hover, .afk-manage-link.active { background: #20372d; color: #86efbc; }
+.afk-manage-link:hover, .afk-manage-link.active { background: #313131; color: #d5d5d5; }
 .afk-profile { display: flex; align-items: center; gap: 9px; min-width: 0; }
-.afk-avatar { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid #394658; background: #243044; color: #dee8f8; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+.afk-avatar { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid #454545; background: #2f2f2f; color: #e7e7e7; font-size: 13px; font-weight: 700; flex-shrink: 0; }
 .afk-profile-text { display: grid; gap: 3px; }
-.afk-profile-text strong { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: #ecf1f7; }
-.afk-profile-text small { font-size: 10px; color: #92a0b3; }
-.afk-logout, .afk-bell, .afk-menu-toggle { background: transparent; color: #bec9d8; border: 1px solid #303a48; border-radius: 9px; }
+.afk-profile-text strong { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: #f0f0f0; }
+.afk-profile-text small { font-size: 10px; color: #9e9e9e; }
+.afk-logout, .afk-bell, .afk-menu-toggle { background: transparent; color: #c8c8c8; border: 1px solid #393939; border-radius: 9px; }
 .afk-logout { padding: 9px 11px; font-size: 12px !important; white-space: nowrap; }
-.afk-logout:hover, .afk-bell:hover { background: #242d39; color: #fff; }
+.afk-logout:hover, .afk-bell:hover { background: #2c2c2c; color: #fff; }
 .afk-signin { font-size: 13px; white-space: nowrap; }
-.afk-join { padding: 11px 16px; background: #78e4ae; color: #102a1e !important; font-size: 13px; font-weight: 700; border-radius: 9px; white-space: nowrap; }
-.afk-join:hover { background: #a4f3cc; }
+.afk-join { padding: 11px 16px; background: #c9c9c9; color: #242424 !important; font-size: 13px; font-weight: 700; border-radius: 9px; white-space: nowrap; }
+.afk-join:hover { background: #dfdfdf; }
 .afk-notif { position: relative; }
 .afk-bell { position: relative; width: 38px; height: 38px; display: grid; place-items: center; }
-.afk-badge { position: absolute; top: -5px; right: -5px; border: 2px solid #0d1016; background: #78e4ae; color: #102a1e; border-radius: 20px; padding: 2px 4px; font-size: 9px; font-weight: 700; }
-.afk-notifications { position: absolute; right: 0; top: 52px; width: 350px; max-width: calc(100vw - 24px); background: #121820; border: 1px solid #303a48; border-radius: 12px; box-shadow: 0 16px 40px #0006; overflow: hidden; }
-.afk-notifications-heading { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid #27303d; font-size: 13px; }
-.afk-notifications-heading button { border: 0; background: none; color: #86efbc; font-size: 11px; }
+.afk-badge { position: absolute; top: -5px; right: -5px; border: 2px solid #101010; background: #c9c9c9; color: #242424; border-radius: 20px; padding: 2px 4px; font-size: 9px; font-weight: 700; }
+.afk-notifications { position: absolute; right: 0; top: 52px; width: 350px; max-width: calc(100vw - 24px); background: #171717; border: 1px solid #393939; border-radius: 12px; box-shadow: 0 16px 40px #0006; overflow: hidden; }
+.afk-notifications-heading { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid #2f2f2f; font-size: 13px; }
+.afk-notifications-heading button { border: 0; background: none; color: #d5d5d5; font-size: 11px; }
 .afk-notifications-body { max-height: min(360px, 50vh); overflow-y: auto; }
-.afk-notifications-empty { padding: 32px 16px; color: #99a7b9; font-size: 13px; text-align: center; }
-.afk-notification { display: grid; gap: 5px; width: 100%; text-align: left; padding: 14px 16px; border: 0; border-bottom: 1px solid #27303d; background: transparent; color: #eef3fa; overflow-wrap: anywhere; }
-.afk-notification.is-unread { background: #183027; }
-.afk-notification:hover { background: #253142; }
-.afk-notification span { color: #aab7c9; font-size: 12px; }
-.afk-notification time { color: #8c9bad; font-size: 10px; }
-.afk-notifications-all { display: block; padding: 14px; text-align: center; font-size: 12px; color: #86efbc !important; }
+.afk-notifications-empty { padding: 32px 16px; color: #a5a5a5; font-size: 13px; text-align: center; }
+.afk-notification { display: grid; gap: 5px; width: 100%; text-align: left; padding: 14px 16px; border: 0; border-bottom: 1px solid #2f2f2f; background: transparent; color: #f2f2f2; overflow-wrap: anywhere; }
+.afk-notification.is-unread { background: #2a2a2a; }
+.afk-notification:hover { background: #303030; }
+.afk-notification span { color: #b6b6b6; font-size: 12px; }
+.afk-notification time { color: #999999; font-size: 10px; }
+.afk-notifications-all { display: block; padding: 14px; text-align: center; font-size: 12px; color: #d5d5d5 !important; }
 .afk-menu-toggle { display: none; width: 40px; height: 40px; font-size: 19px !important; }
 @media (max-width: 1100px) {
   .afk-nav { gap: 16px; padding: 0 16px; }
@@ -55,10 +55,10 @@
   .afk-nav { display: grid; grid-template-columns: 1fr auto; min-height: 70px; padding: 14px 18px; gap: 0; }
   .afk-menu-toggle { display: block; }
   .afk-nav-links, .afk-nav-account { display: none; grid-column: 1 / -1; margin: 0; }
-  .afk-nav-links.is-open { display: grid; gap: 4px; margin-top: 16px; border-top: 1px solid #29323d; padding-top: 12px; }
+  .afk-nav-links.is-open { display: grid; gap: 4px; margin-top: 16px; border-top: 1px solid #313131; padding-top: 12px; }
   .afk-nav-link { padding: 12px; font-size: 14px; }
   .afk-manage summary { font-size: 14px; }
-  .afk-nav-account.is-open { display: flex; justify-content: flex-start; border-top: 1px solid #29323d; padding-top: 16px; margin-top: 12px; gap: 14px; }
+  .afk-nav-account.is-open { display: flex; justify-content: flex-start; border-top: 1px solid #313131; padding-top: 16px; margin-top: 12px; gap: 14px; }
   .afk-profile-text { display: grid; }
   .afk-profile { flex: 1; }
   .afk-manage-panel { position: static; width: 100%; margin-top: 6px; box-shadow: none; }

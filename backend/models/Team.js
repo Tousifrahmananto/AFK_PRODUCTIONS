@@ -15,6 +15,7 @@ const teamSchema = new Schema(
   {
     teamName: { type: String, required: true, trim: true },
     captain: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    manager: { type: Schema.Types.ObjectId, ref: "User", default: null },
     members: [{ type: Schema.Types.ObjectId, ref: "User" }],
 
     game: {
@@ -40,5 +41,6 @@ const teamSchema = new Schema(
 
 teamSchema.index({ teamName: 1 }, { unique: false });
 teamSchema.index({ captain: 1 });
+teamSchema.index({ manager: 1 }, { unique: true, partialFilterExpression: { manager: { $type: 'objectId' } } });
 
 module.exports = mongoose.model("Team", teamSchema);

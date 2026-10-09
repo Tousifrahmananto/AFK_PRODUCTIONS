@@ -31,6 +31,12 @@ const {
 } = require("../controllers/tournamentController");
 
 router.get("/", getAllTournaments);
+const veto = require('../controllers/vetoController');
+router.get('/:id/matches/:matchId/veto', veto.get);
+router.post('/:id/matches/:matchId/veto/heartbeat', veto.heartbeat);
+router.post('/:id/matches/:matchId/veto/actions', veto.act);
+router.post('/:id/matches/:matchId/veto/reset', protect, isAdmin, veto.reset);
+router.patch('/:id/matches/:matchId/settings', protect, isAdmin, veto.settings);
 
 router.get("/:id/bracket", protect, getBracket);
 router.get("/:id/bracket/visibility", protect, getBracketVisibility);

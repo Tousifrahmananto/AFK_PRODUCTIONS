@@ -8,6 +8,7 @@ import {
   generateBracket,
 } from "../services/tournamentService";
 import { AuthContext } from "../context/AuthContext";
+import VetoSettingsEditor from '../components/VetoSettingsEditor';
 
 const BRACKETS = ["Single Elimination", "Double Elimination", "Round Robin"];
 const STATUSES = ["Upcoming", "Live", "Completed"];
@@ -28,6 +29,7 @@ const emptyForm = {
   location: "",
   prizePool: "",
   entryFee: "",
+  vetoSettings: { enabled: false },
 };
 
 export default function CreateTournamentPage() {
@@ -75,6 +77,7 @@ export default function CreateTournamentPage() {
       location: t.location || "",
       prizePool: t.prizePool || "",
       entryFee: t.entryFee || "",
+      vetoSettings: t.vetoSettings || { enabled: false },
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -237,6 +240,7 @@ export default function CreateTournamentPage() {
               <textarea name="rules" value={form.rules} onChange={onChange} />
             </div>
 
+            <VetoSettingsEditor value={form.vetoSettings} game={form.game} token={token} onChange={vetoSettings => setForm(f => ({ ...f, vetoSettings }))} />
             <div className="actions">
               <button type="submit" className="btn btn-primary">{isEditing ? "Update" : "Create"}</button>
               {isEditing && <button type="button" className="btn btn-secondary" onClick={resetForm}>Cancel</button>}

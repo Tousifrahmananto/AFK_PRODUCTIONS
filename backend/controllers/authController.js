@@ -47,10 +47,10 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
     try {
-        const email = String(req.body.email || "").trim();
+        const identifier = String(req.body.identifier || req.body.email || "").trim();
         const password = String(req.body.password || "");
-
-        const user = await User.findOne({ email });
+        if (!identifier || !password || identifier.length > 254 || password.length > 1024) return res.status(400).json({ message: 'Login ID and password are required' });
+        const user = await User.findOne({ $or: [{ email: identifier }, { username: identifier }] });
         if (!user) return res.status(404).json({ message: "User not found" });
         if (user.isBanned || user.banned) {
             return res.status(403).json({ message: "This account has been banned by an administrator." });
@@ -59,7 +59,7 @@ const loginUser = async (req, res) => {
         if (!ok) return res.status(401).json({ message: "Invalid credentials" });
 
         const token = jwt.sign(
-            { userId: user._id, role: user.role },
+            { userId: user._id, role: user.role, authVersion: user.authVersion || 0 },
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
         );
@@ -72,4 +72,23 @@ const loginUser = async (req, res) => {
     }
 };
 
-module.exports = { registerUser, loginUser };
+const changePassword = async (req, res) => {
+    try {
+        const password = String(req.body.password || '');
+        if (password.length < 12 || password.length > 128) return res.status(400).json({ message: 'Use a password of 12–128 characters' });
+        const user = await User.findById(req.user.userId);
+        if (!await bcrypt.compare(String(req.body.currentPassword || ''), user.password)) return res.status(401).json({ message: 'Current password is incorrect' });
+        if (await bcrypt.compare(password, user.password)) return res.status(400).json({ message: 'Choose a different password' });
+        const mongoose = require('mongoose');
+        await mongoose.connection.transaction(async session => {
+            const updated = await User.findOneAndUpdate({ _id: user._id, password: user.password }, { $set: { password: await bcrypt.hash(password, 10), mustChangePassword: false }, $inc: { authVersion: 1 } }, { new: true, session });
+            if (!updated) throw Object.assign(new Error('Password already changed. Sign in again.'), { status: 409 });
+            await require('../models/ProvisionedCredential').deleteMany({ user: user._id }).session(session);
+            user.password = updated.password; user.mustChangePassword = false; user.authVersion = updated.authVersion;
+        });
+        const token = jwt.sign({ userId: user._id, role: user.role, authVersion: user.authVersion }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        const safe = user.toObject(); delete safe.password;
+        res.json({ token, user: safe });
+    } catch (error) { res.status(error.status || 500).json({ message: error.status ? error.message : 'Unable to change password' }); }
+};
+module.exports = { registerUser, loginUser, changePassword };

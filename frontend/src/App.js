@@ -23,6 +23,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import TournamentsPage from "./pages/TournamentsPage";
 import BracketPage from "./pages/BracketPage";
+import MapVetoPage from './pages/MapVetoPage';
 import ProfilePage from "./pages/ProfilePage";
 import TournamentsBrowsePage from "./pages/TournamentsBrowsePage";
 
@@ -51,6 +52,7 @@ function AppFrame() {
           <Route path="/tournaments" element={<TournamentsPage />} />
           <Route path="/browse" element={<TournamentsBrowsePage />} />
           <Route path="/tournaments/:id/bracket" element={<BracketPage />} />
+          <Route path="/tournaments/:id/matches/:matchId/veto" element={<MapVetoPage />} />
 
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/notifications" element={<NotificationsPage />} />

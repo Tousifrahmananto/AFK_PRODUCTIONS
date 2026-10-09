@@ -2,6 +2,9 @@ const PlayerStat = require("../models/PlayerStat");
 const mongoose = require("mongoose");
 const Tournament = require("../models/Tournament");
 const Media = require("../models/Media");
+const VetoSession = require('../models/VetoSession');
+const { validateSettings: validateVetoSettings } = require('../utils/vetoRules');
+const { ensureMatchIds } = require('./vetoController');
 
 function toAbsoluteUrl(req, p) {
   if (!p) return "";
@@ -175,6 +178,7 @@ function normalizeBody(body) {
     location: body.location,
     prizePool: body.prizePool,
     entryFee: body.entryFee,
+    vetoSettings: body.vetoSettings,
   };
 }
 function validate(body, isCreate = true) {
@@ -299,7 +303,9 @@ exports.createTournament = async (req, res) => {
       location: normalized.location || "",
       prizePool: normalized.prizePool || "",
       entryFee: normalized.entryFee || "",
+      vetoSettings: validateVetoSettings(normalized.vetoSettings, normalized.game),
     };
+    if (payload.vetoSettings.enabled && payload.playerLimit > 0) return res.status(400).json({ message: 'Map veto supports team-only tournaments' });
     if (isPast(payload.registrationDeadline)) {
       return res.status(400).json({ message: "registrationDeadline is in the past" });
     }
@@ -307,7 +313,7 @@ exports.createTournament = async (req, res) => {
     res.status(201).json(created);
   } catch (err) {
     console.error("Create tournament error:", err);
-    res.status(500).json({ message: "Failed to create tournament" });
+    res.status(err.status || 500).json({ message: err.status ? err.message : "Failed to create tournament" });
   }
 };
 
@@ -359,21 +365,37 @@ exports.updateTournament = async (req, res) => {
       return res.status(400).json({ message: "invalid status" });
     }
 
-    const t = await Tournament.findByIdAndUpdate(req.params.id, updates, { new: true });
+    const t = await Tournament.findById(req.params.id);
     if (!t) return res.status(404).json({ message: "Tournament not found" });
+    const started = await VetoSession.exists({ tournament: t._id, current: true });
+    if (started && normalized.game && normalized.game !== t.game) return res.status(409).json({ message: 'Cancel existing veto sessions before changing the game' });
+    if (normalized.vetoSettings !== undefined) {
+      updates.vetoSettings = validateVetoSettings(normalized.vetoSettings, updates.game || t.game);
+      if (started && JSON.stringify(updates.vetoSettings) !== JSON.stringify(t.vetoSettings)) return res.status(409).json({ message: 'Cancel existing veto sessions before changing veto settings' });
+    }
+    if (updates.game && normalized.vetoSettings === undefined) updates.vetoSettings = validateVetoSettings(t.vetoSettings, updates.game);
+    if ((updates.vetoSettings || t.vetoSettings)?.enabled && Number(updates.playerLimit ?? t.playerLimit) > 0) return res.status(400).json({ message: 'Map veto supports team-only tournaments' });
+    Object.assign(t, updates);
+    await t.save();
     res.json(t);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(err.status || (err.name === 'VersionError' ? 409 : 500)).json({ message: err.message });
   }
 };
 
 exports.deleteTournament = async (req, res) => {
   try {
-    const t = await Tournament.findByIdAndDelete(req.params.id);
-    if (!t) return res.status(404).json({ message: "Tournament not found" });
+    let found;
+    await mongoose.connection.transaction(async session => {
+      const t = await Tournament.findById(req.params.id).session(session);
+      if (!t) return;
+      if (await VetoSession.exists({ tournament: t._id }).session(session)) throw Object.assign(new Error('Tournament has veto history and cannot be deleted'), { status: 409 });
+      await t.deleteOne({ session }); found = true;
+    });
+    if (!found) return res.status(404).json({ message: "Tournament not found" });
     res.json({ message: "Tournament deleted" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(err.status || 500).json({ message: err.message });
   }
 };
 
@@ -553,6 +575,8 @@ exports.generateBracket = async (req, res) => {
   try {
     const t = await Tournament.findById(req.params.id);
     if (!t) return res.status(404).json({ message: "Tournament not found" });
+    if (await VetoSession.exists({ tournament: t._id, current: true })) return res.status(409).json({ message: 'Cancel existing veto sessions before regenerating the bracket' });
+    if (t.bracketData?.rounds?.some(round => round.some(m => m.winner))) return res.status(409).json({ message: 'Cannot regenerate a bracket with recorded results' });
 
     const { teamMap, userMap } = await buildLabelMaps(t);
 
@@ -587,11 +611,12 @@ exports.generateBracket = async (req, res) => {
     promoteByesOneRound(bd);
 
     t.bracketData = bd;
+    for (const round of bd.rounds) for (const match of round) match.id = require('node:crypto').randomUUID();
     await t.save();
     res.json({ message: "Bracket generated", bracketData: t.bracketData });
   } catch (err) {
     console.error("generateBracket error:", err);
-    res.status(500).json({ message: "Failed to generate bracket" });
+    res.status(err.name === 'VersionError' ? 409 : 500).json({ message: err.name === 'VersionError' ? 'Bracket changed. Refresh and retry.' : "Failed to generate bracket" });
   }
 };
 
@@ -611,7 +636,7 @@ exports.getBracketVisibility = async (req, res) => {
 exports.getBracket = async (req, res) => {
   try {
     const t = await Tournament.findById(req.params.id)
-      .select("bracketData title registrationOpen registrationDeadline status teamLimit playerLimit teams soloPlayers");
+      .select("bracketData title registrationOpen registrationDeadline status teamLimit playerLimit teams soloPlayers vetoSettings __v");
     if (!t) return res.status(404).json({ message: "Tournament not found" });
 
     if (req.user?.role !== "Admin") {
@@ -625,6 +650,7 @@ exports.getBracket = async (req, res) => {
 
     let bd = t.bracketData;
     if (!bd) return res.json({ title: t.title, bracketData: null });
+    await ensureMatchIds(t);
 
     const needsLabel =
       (bd.participants || []).some((p) => p && !p.label) ||
@@ -640,7 +666,9 @@ exports.getBracket = async (req, res) => {
       await t.save();
     }
 
-    res.json({ title: t.title, bracketData: bd });
+    const TeamModel = require('../models/Team');
+    const allowedTeams = req.user.role === 'Admin' ? [] : await TeamModel.find({ $or: [{ captain: req.user.userId }, { manager: req.user.userId }, { members: req.user.userId }] }).select('_id').lean();
+    res.json({ title: t.title, bracketData: bd, vetoSettings: t.vetoSettings, vetoTeamIds: allowedTeams.map(team => String(team._id)) });
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch bracket" });
   }
@@ -661,6 +689,16 @@ exports.setMatchResult = async (req, res) => {
     if (!round) return res.status(400).json({ message: "Invalid roundIndex" });
     const match = round[matchIndex];
     if (!match) return res.status(400).json({ message: "Invalid matchIndex" });
+    if (t.vetoSettings?.enabled && match.p1?.kind === 'team' && match.p2?.kind === 'team') {
+      const veto = await VetoSession.findOne({ tournament: t._id, matchId: match.id, current: true }).lean();
+      if (veto?.state.phase !== 'completed') return res.status(409).json({ message: 'Complete the map veto before recording the result' });
+    }
+    let nextR = Number(roundIndex) + 1, nextM = Math.floor(Number(matchIndex) / 2);
+    while (bd.rounds[nextR]) {
+      const nextMatch = bd.rounds[nextR][nextM];
+      if (nextMatch?.id && await VetoSession.exists({ tournament: t._id, matchId: nextMatch.id, current: true })) return res.status(409).json({ message: 'Cancel downstream veto sessions before changing their opponents' });
+      nextR++; nextM = Math.floor(nextM / 2);
+    }
 
     const candidate = match[winnerSide];
     if (!candidate) return res.status(400).json({ message: "Selected side has no participant" });

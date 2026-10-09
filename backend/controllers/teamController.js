@@ -29,6 +29,7 @@ const getTeamPublic = async (req, res) => {
 };
 function populateTeam(q) {
   return q
+    .populate('manager', '_id username role')
     .populate("members", "username email role")
     .populate("captain", "username email role");
 }
@@ -186,11 +187,13 @@ const createTeam = async (req, res) => {
 const getMyTeam = async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select("team").lean();
-    if (!user?.team) {
+    const managed = user?.team ? null : await Team.findOne({ manager: req.user.userId }).select('_id');
+    const teamId = user?.team || managed?._id;
+    if (!teamId) {
       return res.status(404).json({ message: "No team assigned" });
     }
-    await ensureTeamHasGame(user.team);
-    const team = await populateTeam(Team.findById(user.team));
+    await ensureTeamHasGame(teamId);
+    const team = await populateTeam(Team.findById(teamId));
     res.json(team);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -331,7 +334,25 @@ const leaveTeam = async (req, res) => {
   }
 };
 
+const assignManager = async (req, res) => {
+  try {
+    const mongoose = require('mongoose');
+    if (!mongoose.isValidObjectId(req.params.teamId)) return res.status(404).json({ message: 'Team not found' });
+    const team = await Team.findById(req.params.teamId);
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+    let manager = null;
+    if (req.body.username) {
+      manager = await User.findOne({ username: String(req.body.username).trim(), role: 'TeamManager', banned: { $ne: true }, isBanned: { $ne: true } });
+      if (!manager) return res.status(400).json({ message: 'Choose an active TeamManager username' });
+      if ((manager.team && String(manager.team) !== String(team._id)) || await Team.exists({ _id: { $ne: team._id }, $or: [{ manager: manager._id }, { captain: manager._id }, { members: manager._id }] })) return res.status(409).json({ message: 'Manager already belongs to another team' });
+    }
+    team.manager = manager?._id || null;
+    await team.save();
+    res.json({ manager: manager ? { id: String(manager._id), username: manager.username } : null });
+  } catch (err) { res.status(err.code === 11000 ? 409 : 500).json({ message: 'Unable to assign manager' }); }
+};
 module.exports = {
+  assignManager,
   listPlayers,
   createTeam,
   getMyTeam,

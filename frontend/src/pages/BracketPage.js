@@ -48,15 +48,19 @@ export default function BracketPage() {
     const [loading, setLoading]     = useState(true);
     const [title, setTitle]         = useState("");
     const [bracketData, setBracketData] = useState(null);
+    const [vetoEnabled, setVetoEnabled] = useState(false);
+    const [vetoTeamIds, setVetoTeamIds] = useState([]);
 
     const isAdmin = user?.role === "Admin";
-    const matchHeight = MATCH_H + (isAdmin ? 44 : 0);
+    const matchHeight = MATCH_H + (isAdmin ? 44 : 0) + (vetoEnabled ? 44 : 0);
 
     const load = useCallback(async () => {
         try {
             const data = await getBracket(tournamentId, token);
             setTitle(data?.title || "");
             setBracketData(data?.bracketData || null);
+            setVetoEnabled(!!data?.vetoSettings?.enabled);
+            setVetoTeamIds(data?.vetoTeamIds || []);
         } catch (e) {
             console.error(e);
             alert("Failed to load bracket");
@@ -179,6 +183,9 @@ export default function BracketPage() {
                                                 </div>
                                             </div>
 
+                                            {vetoEnabled && match.id && match.p1?.kind === 'team' && match.p2?.kind === 'team' && (isAdmin || [match.p1.id, match.p2.id].some(id => vetoTeamIds.includes(String(id)))) && (
+                                                <div style={adminControls}><button type="button" style={adminBtn} onClick={() => navigate(`/tournaments/${tournamentId}/matches/${match.id}/veto`)}>Map veto</button></div>
+                                            )}
                                             {isAdmin && (
                                                 <div style={adminControls}>
                                                     <button

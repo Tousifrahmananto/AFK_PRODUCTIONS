@@ -39,6 +39,7 @@ const noStore = (_req, res, next) => { res.set("Cache-Control", "no-store"); nex
 app.use("/uploads", noStore, protect, express.static(uploadsDir));
 io.use(protectSocket);
 io.on("connection", (socket) => {
+  require('./utils/vetoSocket').attach(socket);
   socket.join(`user:${socket.data.userId}`);
 
   socket.on("ping", () => socket.emit("pong"));
@@ -60,6 +61,7 @@ app.get("/api/health", (_req, res) =>
 app.use("/api", noStore);
 app.use("/api/auth", authRoutes);
 app.use("/api", protect);
+app.get('/api/maps', require('./controllers/vetoController').maps);
 app.use("/api/users", userRoutes);
 app.use("/api/tournaments", tournamentRoutes);
 app.use("/api/teams", teamRoutes);
