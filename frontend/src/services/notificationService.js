@@ -1,5 +1,5 @@
 import axios from "axios";
-const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
+import { API_ORIGIN as API } from "./apiConfig";
 
 export function getUnreadCount(token) {
   return axios

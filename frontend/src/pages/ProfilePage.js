@@ -17,6 +17,7 @@ const ProfilePage = () => {
       setError("You must be logged in to view profiles");
       return;
     }
+    setError("");
 
     if (id) {
       getUserById(id)

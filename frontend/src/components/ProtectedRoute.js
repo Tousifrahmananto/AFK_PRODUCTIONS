@@ -14,7 +14,8 @@ export function RequireAdmin({ children }) {
         return <Navigate to="/login" replace state={{ from: location }} />;
     }
 
-    if (ctx.user && ctx.user.role !== "Admin") {
+    if (!ctx.user) return null;
+    if (ctx.user.role !== "Admin") {
         return <Navigate to="/" replace />;
     }
 

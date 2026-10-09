@@ -1,4 +1,5 @@
-const API = process.env.REACT_APP_API_BASE || "http://localhost:5000/api";
+import { API_BASE } from "./apiConfig";
+const API = process.env.REACT_APP_API_BASE || API_BASE;
 
 function authHeaders() {
     const t = localStorage.getItem("token");

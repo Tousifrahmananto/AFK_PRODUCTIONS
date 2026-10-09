@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: afk-productions-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 24.14.0
+      - key: NODE_ENV
+        value: production
+      - key: CLIENT_ORIGIN
+        value: https://afk-productions-frontend.vercel.app
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+# shortcut: free instances lose uploaded files on restart; configure durable storage before accepting uploads.

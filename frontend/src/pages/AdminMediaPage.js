@@ -7,7 +7,7 @@ import {
 } from "../services/mediaService";
 
 function computeApiOrigin() {
-    const env = process.env.REACT_APP_API || "";
+    const env = process.env.REACT_APP_API || process.env.REACT_APP_API_URL || "";
     if (env) {
         return env.replace(/\/api\/?$/i, "");
     }

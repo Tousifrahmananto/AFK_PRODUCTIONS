@@ -1,4 +1,4 @@
-const API = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+import { API_BASE as API } from "./apiConfig";
 
 export async function register({ username, email, password, role }) {
     const allowed = new Set(["Player", "Sponsor", "Partner"]);

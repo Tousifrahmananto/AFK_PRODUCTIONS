@@ -1,3 +1,4 @@
+import { API_BASE as API } from "../services/apiConfig";
 import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
@@ -8,7 +9,7 @@ export default function MyTeamPage() {
     const [allPlayers, setAllPlayers] = useState([]);
     const [selectedPlayer, setSelectedPlayer] = useState("");
 
-    const API = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+
 
     useEffect(() => {
         if (!token) return;
@@ -26,7 +27,7 @@ export default function MyTeamPage() {
             })
             .then((res) => setAllPlayers(res.data))
             .catch(console.error);
-    }, [API, token]);
+    }, [token]);
 
     if (user?.role !== "TeamManager") {
         return <div className="text-center mt-10">Access denied.</div>;

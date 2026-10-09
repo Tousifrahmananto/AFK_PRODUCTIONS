@@ -9,9 +9,14 @@ const AuthProvider = ({ children }) => {
     useEffect(() => {
         const u = localStorage.getItem("user");
         const t = localStorage.getItem("token");
-        if (u && t) {
-            setUser(JSON.parse(u));
-            setToken(t);
+        try {
+            if (u && t) {
+                setUser(JSON.parse(u));
+                setToken(t);
+            }
+        } catch {
+            localStorage.removeItem("user");
+            localStorage.removeItem("token");
         }
     }, []);
 
@@ -23,7 +28,8 @@ const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
-        localStorage.clear();
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
         setUser(null);
         setToken(null);
     };

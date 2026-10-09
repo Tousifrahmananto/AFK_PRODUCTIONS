@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { fetchMedia } from "../services/mediaService"; // GET /api/media
 
 function computeApiOrigin() {
-    const api = process.env.REACT_APP_API || "";
+    const api = process.env.REACT_APP_API || process.env.REACT_APP_API_URL || "";
     if (api) return api.replace(/\/api\/?$/i, ""); // e.g. http://localhost:5000
     try {
         return window.location.origin.replace(":3000", ":5000");

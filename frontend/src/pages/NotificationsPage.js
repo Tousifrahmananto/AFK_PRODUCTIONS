@@ -1,7 +1,7 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import {
-  getMyNotifications,
+  getNotifications,
   markRead,
   markAllRead,
   deleteNotification,
@@ -13,20 +13,20 @@ export default function NotificationsPage() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!user || !token) return;
     setLoading(true);
     try {
-      const data = await getMyNotifications(token);
+      const data = await getNotifications(token);
       setItems(data);
     } catch (e) {
       alert("Failed to load notifications");
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, token]);
 
-  useEffect(() => { load(); }, [token]);
+  useEffect(() => { load(); }, [load]);
 
   const onRead = async (id) => {
     try { await markRead(id, token); await load(); } catch {}

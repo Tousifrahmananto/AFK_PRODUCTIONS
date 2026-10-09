@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config({ path: require("path").join(__dirname, ".env") });
 
 const express = require("express");
 const http = require("http");
@@ -35,13 +35,10 @@ app.use("/uploads", express.static(uploadsDir));
 
 app.set("io", io);
 
+const { protect, protectSocket } = require("./middlewares/authMiddleware");
+io.use(protectSocket);
 io.on("connection", (socket) => {
-  socket.on("identify", ({ userId } = {}) => {
-    const id = String(userId || "");
-    if (!id) return;
-    socket.join(`user:${id}`);
-    socket.data.userId = id;
-  });
+  socket.join(`user:${socket.data.userId}`);
 
   socket.on("ping", () => socket.emit("pong"));
 });
@@ -54,7 +51,6 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const mediaRoutes = require("./routes/mediaRoutes");
 const adRoutes = require("./routes/adRoutes");
 const leaderboardRoutes = require("./routes/leaderboardRoutes");
-const { protect } = require("./middlewares/authMiddleware");
 
 app.get("/api/health", (_req, res) =>
   res.json({ ok: true, ts: new Date().toISOString() })

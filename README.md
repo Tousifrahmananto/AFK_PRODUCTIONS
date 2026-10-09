@@ -197,7 +197,7 @@ AFK_PRODUCTIONS/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/AFK_PRODUCTIONS.git
+git clone https://github.com/Tousifrahmananto/AFK_PRODUCTIONS.git
 cd AFK_PRODUCTIONS
 ```
 
@@ -209,6 +209,7 @@ npm install
 ```
 
 Create a `.env` file in `backend/` with the required variables (see [Environment Variables](#-environment-variables)).
+You can copy `backend/.env.example` as a starting point. A working MongoDB connection is required before the API listens.
 
 ```bash
 npm run dev
@@ -227,6 +228,7 @@ npm start
 ```
 
 The React app starts on `http://localhost:3000`.
+For a different API address, copy `frontend/.env.example` to `frontend/.env.local` and set `REACT_APP_API_URL` (with or without the `/api` suffix). Restart the frontend after changing environment variables.
 
 ---
 

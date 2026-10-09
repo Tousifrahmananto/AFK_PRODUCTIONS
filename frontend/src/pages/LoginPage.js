@@ -18,7 +18,7 @@ const LoginPage = () => {
             login(res.user, res.token);
             navigate(`/profile/${res.user._id}`);
         } catch (err) {
-            alert(err.response?.data?.message || "Login failed");
+            alert(err.response?.data?.message || err.message || "Login failed");
         }
     };
 

@@ -4,7 +4,7 @@ import axios from "axios";
 import { io as socketIO } from "socket.io-client";
 import { AuthContext } from "../context/AuthContext";
 
-const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
+import { API_ORIGIN as API } from "../services/apiConfig";
 const AX = axios.create({ baseURL: API });
 
 export default function Navbar() {
@@ -25,13 +25,8 @@ export default function Navbar() {
   useEffect(() => {
     if (!token || !user) return;
 
-    const s = socketIO(API, { withCredentials: true, transports: ["websocket"] });
+    const s = socketIO(API, { auth: { token }, withCredentials: true, transports: ["websocket"] });
     socketRef.current = s;
-
-    s.on("connect", () => {
-      const uid = user.userId || user._id;
-      if (uid) s.emit("identify", { userId: String(uid) });
-    });
 
     s.on("notify", (n) => {
       setUnread((u) => u + 1);

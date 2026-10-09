@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+import { API_BASE } from "./apiConfig";
 
 export async function listAllPlayers(token) {
     const res = await axios.get(`${API_BASE}/teams/players`, {

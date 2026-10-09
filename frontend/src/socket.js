@@ -1,10 +1,6 @@
 import { io } from "socket.io-client";
-const URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+import { API_ORIGIN as URL } from "./services/apiConfig";
 
-export function makeSocket(userId) {
-  const socket = io(URL, { withCredentials: true, transports: ["websocket"] });
-  socket.on("connect", () => {
-    socket.emit("identify", { userId });
-  });
-  return socket;
+export function makeSocket(token = localStorage.getItem("token")) {
+  return io(URL, { auth: { token }, withCredentials: true, transports: ["websocket"] });
 }

@@ -1,3 +1,4 @@
+import { API_BASE as API } from "../services/apiConfig";
 import React, { useContext, useState} from "react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
@@ -18,7 +19,7 @@ export default function CreateTeamPage() {
     const [initialMembersCSV, setInitialMembersCSV] = useState("");
 
     const navigate = useNavigate();
-    const API = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+
 
     if (user?.role !== "TeamManager") {
         return <div className="text-center mt-10">Access denied.</div>;

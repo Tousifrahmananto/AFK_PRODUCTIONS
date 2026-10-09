@@ -52,7 +52,7 @@ const loginUser = async (req, res) => {
 
         const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ message: "User not found" });
-        if (user && user.isBanned) {
+        if (user.isBanned || user.banned) {
             return res.status(403).json({ message: "This account has been banned by an administrator." });
         }
         const ok = await bcrypt.compare(password, user.password);
@@ -63,7 +63,9 @@ const loginUser = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
         );
-        return res.json({ token, user });
+        const publicUser = user.toObject();
+        delete publicUser.password;
+        return res.json({ token, user: publicUser });
     } catch (err) {
         console.error("login error:", err);
         return res.status(500).json({ message: "Login failed" });

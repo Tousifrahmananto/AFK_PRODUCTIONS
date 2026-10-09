@@ -6,7 +6,8 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import { RequireAdmin } from "./components/ProtectedRoute";
+import { RequireAdmin, RequireAuth } from "./components/ProtectedRoute";
+import NotificationsPage from "./pages/NotificationsPage";
 import AdminMatchMediaPage from "./pages/AdminMatchMediaPage";
 
 import Navbar from "./components/Navbar";
@@ -53,6 +54,7 @@ function AppFrame() {
         <Route path="/tournaments/:id/bracket" element={<BracketPage />} />
 
         <Route path="/leaderboard" element={<LeaderboardPage />} />
+        <Route path="/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
 
         <Route path="/create-team" element={<CreateTeamPage />} />
         <Route path="/my-team" element={<MyTeamPage />} />
@@ -64,11 +66,11 @@ function AppFrame() {
 
         <Route path="/gallery" element={<MediaGalleryPage />} />
         <Route path="/media" element={<MediaGalleryPage />} />
-        <Route path="/admin/media" element={<AdminMediaPage />} />
+        <Route path="/admin/media" element={<RequireAdmin><AdminMediaPage /></RequireAdmin>} />
         <Route path="/ads/mine" element={<MyAdsPage />} />
 
-        <Route path="/admin/create-tournament" element={<CreateTournamentPage />} />
-        <Route path="/admin/user-moderation" element={<AdminUserModerationPage />} />
+        <Route path="/admin/create-tournament" element={<RequireAdmin><CreateTournamentPage /></RequireAdmin>} />
+        <Route path="/admin/user-moderation" element={<RequireAdmin><AdminUserModerationPage /></RequireAdmin>} />
         <Route
           path="/admin/match-stats/:tournamentId"
           element={

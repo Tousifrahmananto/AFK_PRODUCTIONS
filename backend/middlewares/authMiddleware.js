@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
 function extractToken(req) {
     const h = req.headers?.authorization || "";
@@ -16,13 +17,17 @@ async function protect(req, res, next) {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const userId = decoded.userId || decoded.id || decoded._id;
-        const role = decoded.role;
 
         if (!userId) {
             return res.status(401).json({ message: "Invalid token payload" });
         }
 
-        req.user = { userId: String(userId), role: role || "Player" };
+        const user = await User.findById(userId).select("role banned isBanned");
+        if (!user) return res.status(401).json({ message: "User no longer exists" });
+        if (user.banned || user.isBanned) {
+            return res.status(403).json({ message: "This account has been banned by an administrator." });
+        }
+        req.user = { userId: String(user._id), role: user.role };
         return next();
     } catch (err) {
         return res.status(401).json({ message: "Invalid or expired token" });
@@ -43,4 +48,16 @@ function isAdmin(req, res, next) {
     return requireRole("Admin")(req, res, next);
 }
 
-module.exports = { protect, requireRole, isAdmin };
+async function protectSocket(socket, next) {
+    const req = { headers: { authorization: `Bearer ${socket.handshake.auth?.token || ""}` } };
+    const res = {
+        status() { return this; },
+        json({ message }) { next(new Error(message)); },
+    };
+    await protect(req, res, () => {
+        socket.data.userId = req.user.userId;
+        next();
+    });
+}
+
+module.exports = { protect, protectSocket, requireRole, isAdmin };

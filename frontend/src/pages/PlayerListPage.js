@@ -1,3 +1,4 @@
+import { API_BASE } from "../services/apiConfig";
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { listAllPlayers, addPlayerToTeam } from "../services/teamService";
@@ -12,7 +13,7 @@ const PlayerListPage = () => {
         listAllPlayers(token).then(setPlayers).catch(console.error);
 
         axios
-            .get("http://localhost:5000/api/teams/my", {
+            .get(`${API_BASE}/teams/my`, {
                 headers: { Authorization: `Bearer ${token}` },
             })
             .then((res) => setTeam(res.data))
