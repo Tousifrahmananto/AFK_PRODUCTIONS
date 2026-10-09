@@ -60,7 +60,10 @@ app.get("/api/health", (_req, res) =>
 
 app.use("/api", noStore);
 app.use("/api/auth", authRoutes);
+app.get('/api/google/callback', require('./controllers/googleController').callback);
 app.use("/api", protect);
+app.use('/api/google', require('./routes/googleRoutes'));
+app.use('/api/tournament-imports', require('./routes/importRoutes'));
 app.get('/api/maps', require('./controllers/vetoController').maps);
 app.use("/api/users", userRoutes);
 app.use("/api/tournaments", tournamentRoutes);
@@ -77,6 +80,7 @@ if (require.main === module) mongoose
   .connect(MONGO_URI)
   .then(() => {
     console.log("MongoDB connected");
+    require('./utils/credentialEmail').start();
     server.listen(PORT, () => {
       console.log(`Server + Socket.IO running on port ${PORT}`);
     });

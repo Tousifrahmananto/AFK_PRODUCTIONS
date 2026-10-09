@@ -7,6 +7,7 @@ export function RequireAuth({ children }) {
     const location = useLocation();
     if (loading) return <p role="status" style={{ padding: 24 }}>Verifying your session…</p>;
     if (!user || !token) return <Navigate to="/login" replace state={{ from: location }} />;
+    if (user.mustChangePassword && location.pathname !== '/change-password') return <Navigate to="/change-password" replace />;
     return children;
 }
 
@@ -22,5 +23,5 @@ export function RequireAdmin({ children }) {
 export function GuestOnly({ children }) {
     const { user, token, loading } = useContext(AuthContext) || {};
     if (loading) return <p role="status" style={{ padding: 24 }}>Verifying your session…</p>;
-    return user && token ? <Navigate to="/tournaments" replace /> : children;
+    return user && token ? <Navigate to={user.mustChangePassword ? '/change-password' : '/tournaments'} replace /> : children;
 }

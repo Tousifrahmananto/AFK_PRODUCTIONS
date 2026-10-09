@@ -8,6 +8,11 @@ jest.mock("react-router-dom", () => ({
     useLocation: () => ({ pathname: "/admin/media" }),
 }), { virtual: true });
 afterEach(() => localStorage.clear());
+test('temporary-password accounts cannot mount private pages', () => {
+    render(<AuthContext.Provider value={{ user: { role: 'Player', mustChangePassword: true }, token: 'verified' }}><RequireAuth>private content</RequireAuth></AuthContext.Provider>);
+    expect(screen.queryByText('private content')).not.toBeInTheDocument();
+    expect(screen.getByText('redirect:/change-password')).toBeInTheDocument();
+});
 function renderGuard(value) {
     render(<AuthContext.Provider value={value}><RequireAdmin><div>admin content</div></RequireAdmin></AuthContext.Provider>);
 }

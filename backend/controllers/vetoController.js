@@ -26,7 +26,9 @@ async function context(tournamentId, matchId, user, dbSession) {
     if (r > 0 && (!resolved(r - 1, m * 2) || !resolved(r - 1, m * 2 + 1))) return false;
     return !!feeder.winner || !(feeder.p1 && feeder.p2);
   }
-  if (found.r > 0 && (!resolved(found.r - 1, found.m * 2) || !resolved(found.r - 1, found.m * 2 + 1))) fail('Waiting for feeder match results', 409);
+  if (t.bracketData.graphVersion) {
+    if (!['ready', 'completed'].includes(match.status)) fail('Waiting for feeder match results', 409);
+  } else if (found.r > 0 && (!resolved(found.r - 1, found.m * 2) || !resolved(found.r - 1, found.m * 2 + 1))) fail('Waiting for feeder match results', 409);
   if (match.p1?.kind !== 'team' || match.p2?.kind !== 'team' || match.p1.id === match.p2.id) fail('Veto requires two resolved opposing teams', 409);
   const ids = [String(match.p1.id), String(match.p2.id)];
   const rows = await Team.find({ _id: { $in: ids }, status: { $ne: 'disbanded' } }).session(dbSession || null).lean();

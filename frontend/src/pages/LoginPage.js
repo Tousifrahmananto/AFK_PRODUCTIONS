@@ -17,7 +17,7 @@ const LoginPage = () => {
         try {
             const res = await loginUser(credentials);
             login(res.user, res.token);
-            navigate(location.state?.from || "/tournaments", { replace: true });
+            navigate(res.user.mustChangePassword ? '/change-password' : location.state?.from || "/tournaments", { replace: true });
         } catch (err) {
             alert(err.response?.data?.message || err.message || "Login failed");
         }
@@ -30,9 +30,11 @@ const LoginPage = () => {
                 <h2>Sign in to AFK Productions</h2>
                 <form onSubmit={handleSubmit}>
                     <input
-                        type="email"
+                        type="text"
                         name="email"
-                        placeholder="Email"
+                        placeholder="Email or team login ID"
+                        aria-label="Email or team login ID"
+                        autoComplete="username"
                         onChange={handleChange}
                         required
                         className="input"

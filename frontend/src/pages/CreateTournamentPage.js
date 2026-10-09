@@ -9,6 +9,8 @@ import {
 } from "../services/tournamentService";
 import { AuthContext } from "../context/AuthContext";
 import VetoSettingsEditor from '../components/VetoSettingsEditor';
+import RegistrationImport from '../components/RegistrationImport';
+import { vetoRequest } from '../services/vetoService';
 
 const BRACKETS = ["Single Elimination", "Double Elimination", "Round Robin"];
 const STATUSES = ["Upcoming", "Live", "Completed"];
@@ -126,9 +128,9 @@ export default function CreateTournamentPage() {
           background:#0f1115; color:#e8ecf2; min-height:100vh;
           padding:20px 10px 40px; display:flex; justify-content:center;
         }
-        .ctp-container { width:100%; max-width:900px; }
+        .ctp-container { width:100%; max-width:900px; min-width:0; }
         .ctp-card {
-          background:#151922; border:1px solid #222838; border-radius:12px;
+          background:#191919; border:1px solid #303030; border-radius:12px; overflow-x:auto;
           padding:20px; margin-bottom:22px; box-shadow:0 6px 16px rgba(0,0,0,.4);
         }
         form { display:grid; gap:14px; }
@@ -143,11 +145,11 @@ export default function CreateTournamentPage() {
         textarea { resize:vertical; min-height:80px; }
         .actions { display:flex; gap:10px; margin-top:8px; flex-wrap:wrap; }
         .btn { border:0; border-radius:8px; padding:8px 14px; font-weight:600; cursor:pointer; }
-        .btn-primary { background:#4f8cff; color:#fff; }
+        .btn-primary { background:#eee; color:#111; }
         .btn-secondary { background:#2b2f3b; color:#fff; }
         .btn-danger { background:#b23b3b; color:#fff; }
         .btn-warning { background:#b27b3b; color:#fff; }
-        .btn-success { background:#2e7d52; color:#fff; }
+        .btn-success { background:#eee; color:#111; }
         table { width:100%; border-collapse:collapse; }
         th, td { padding:10px; border-bottom:1px solid #2a2f3d; font-size:14px; }
         th { text-align:left; color:#9aa3b2; }
@@ -248,6 +250,8 @@ export default function CreateTournamentPage() {
           </form>
         </div>
 
+        <RegistrationImport tournaments={list} onImported={load} />
+
         <div className="ctp-card">
           {loading && <div>Loading…</div>}
           {!loading && list.length === 0 && <div>No tournaments yet.</div>}
@@ -278,6 +282,7 @@ export default function CreateTournamentPage() {
                           {t.registrationOpen ? "Close" : "Open"}
                         </button>
                         <button className="btn btn-success" onClick={() => onGenerateBracket(t._id)}>Bracket</button>
+                        <button className="btn btn-secondary" onClick={async () => { if (!window.confirm('Clear this unplayed bracket? Registered teams will remain.')) return; try { await vetoRequest(`/tournaments/${t._id}/reset-bracket`, token, {}); await load(); } catch (error) { alert(error.message); } }}>Clear unplayed bracket</button>
                       </div>
                     </td>
                   </tr>

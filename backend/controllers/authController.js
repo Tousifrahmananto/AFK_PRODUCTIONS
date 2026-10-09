@@ -75,7 +75,7 @@ const loginUser = async (req, res) => {
 const changePassword = async (req, res) => {
     try {
         const password = String(req.body.password || '');
-        if (password.length < 12 || password.length > 128) return res.status(400).json({ message: 'Use a password of 12–128 characters' });
+        if (password.length < 12 || Buffer.byteLength(password) > 72) return res.status(400).json({ message: 'Use at least 12 characters and at most 72 UTF-8 bytes' });
         const user = await User.findById(req.user.userId);
         if (!await bcrypt.compare(String(req.body.currentPassword || ''), user.password)) return res.status(401).json({ message: 'Current password is incorrect' });
         if (await bcrypt.compare(password, user.password)) return res.status(400).json({ message: 'Choose a different password' });

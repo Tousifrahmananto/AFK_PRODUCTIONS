@@ -1,0 +1,12 @@
+const router = require('express').Router();
+const multer = require('multer');
+const { isAdmin } = require('../middlewares/adminMiddleware');
+const imports = require('../controllers/importController');
+router.use(isAdmin);
+router.get('/', imports.list);
+router.post('/preview', (req, res, next) => multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 10 } }).single('file')(req, res, error => error ? res.status(400).json({ message: 'Upload one CSV no larger than 5 MB' }) : next()), imports.preview);
+router.get('/:id', imports.get);
+router.post('/:id/confirm', imports.confirm);
+router.get('/:id/credentials.csv', imports.download);
+router.post('/:id/retry-email', imports.retry);
+module.exports = router;

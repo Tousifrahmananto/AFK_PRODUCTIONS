@@ -7,7 +7,7 @@ async function getUserPublic(req, res) {
   try {
     const u = await User.findById(req.params.id)
       .select(req.user.role === "Admin" || req.user.userId === req.params.id
-        ? "_id username email role isBanned banned createdAt updatedAt"
+        ? "_id username email contactEmail role isBanned banned createdAt updatedAt"
         : "_id username role createdAt updatedAt");
     if (!u) return res.status(404).json({ message: "User not found" });
     res.json(u);
@@ -18,7 +18,7 @@ async function getUserPublic(req, res) {
 
 async function addEffectiveTeam(userLean) {
   if (userLean.team && typeof userLean.team === "object") return userLean;
-  const membership = await Team.findOne({ members: userLean._id })
+  const membership = await Team.findOne({ $or: [{ members: userLean._id }, { manager: userLean._id }] })
     .select("teamName name logoUrl")
     .lean();
   return membership ? { ...userLean, team: membership } : userLean;
@@ -94,7 +94,7 @@ async function getMyTournaments(req, res) {
 
     let teamId = me.team;
     if (!teamId) {
-      const membership = await Team.findOne({ members: me._id }).select("_id").lean();
+      const membership = await Team.findOne({ $or: [{ members: me._id }, { manager: me._id }] }).select("_id").lean();
       teamId = membership?._id || null;
     }
 

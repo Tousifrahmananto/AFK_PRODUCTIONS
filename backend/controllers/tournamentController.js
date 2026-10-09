@@ -5,6 +5,7 @@ const Media = require("../models/Media");
 const VetoSession = require('../models/VetoSession');
 const { validateSettings: validateVetoSettings } = require('../utils/vetoRules');
 const { ensureMatchIds } = require('./vetoController');
+const brackets = require('../utils/brackets');
 
 function toAbsoluteUrl(req, p) {
   if (!p) return "";
@@ -91,32 +92,6 @@ const isPast = (d) => d && d.getTime() < Date.now();
 const isBlank = (v) =>
   v === undefined || v === null || (typeof v === "string" && v.trim() === "");
 
-function fisherYatesShuffle(arr) {
-  const a = arr.slice();
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-function nextPowerOfTwo(n) { let p = 1; while (p < n) p <<= 1; return p; }
-function buildSingleElimRounds(ordered) {
-  const N = ordered.length;
-  const size = nextPowerOfTwo(N);
-  const withByes = ordered.concat(Array(size - N).fill(null));
-  const rounds = [];
-  const round1 = [];
-  for (let i = 0; i < withByes.length; i += 2) {
-    round1.push({ p1: withByes[i], p2: withByes[i + 1] ?? null, winner: null });
-  }
-  rounds.push(round1);
-  let len = round1.length;
-  while (len > 1) {
-    len = Math.ceil(len / 2);
-    rounds.push(new Array(len).fill(null).map(() => ({ p1: null, p2: null, winner: null })));
-  }
-  return rounds;
-}
 function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
 function placeWinnerInNextRound(bracketData, roundIndex, matchIndex, winnerObj) {
   const nextRoundIndex = roundIndex + 1;
@@ -126,25 +101,6 @@ function placeWinnerInNextRound(bracketData, roundIndex, matchIndex, winnerObj) 
   const m = bracketData.rounds[nextRoundIndex][nextMatchIndex];
   if (!m) return;
   if (m[slot] == null) m[slot] = winnerObj;
-}
-
-function promoteByesOneRound(bracketData) {
-  for (let r = 0; r < bracketData.rounds.length - 1; r++) {
-    const round = bracketData.rounds[r];
-    for (let i = 0; i < round.length; i++) {
-      const match = round[i];
-      if (!match) continue;
-      const { p1, p2 } = match;
-      if ((p1 && !p2) || (p2 && !p1)) {
-        const advancer = p1 || p2;
-        const nextRoundIndex = r + 1;
-        const nextMatchIndex = Math.floor(i / 2);
-        const slot = i % 2 === 0 ? "p1" : "p2";
-        const nxt = bracketData.rounds[nextRoundIndex][nextMatchIndex];
-        if (nxt && nxt[slot] == null) nxt[slot] = advancer;
-      }
-    }
-  }
 }
 
 function isBracketVisibleToUsers(t) {
@@ -576,7 +532,7 @@ exports.generateBracket = async (req, res) => {
     const t = await Tournament.findById(req.params.id);
     if (!t) return res.status(404).json({ message: "Tournament not found" });
     if (await VetoSession.exists({ tournament: t._id, current: true })) return res.status(409).json({ message: 'Cancel existing veto sessions before regenerating the bracket' });
-    if (t.bracketData?.rounds?.some(round => round.some(m => m.winner))) return res.status(409).json({ message: 'Cannot regenerate a bracket with recorded results' });
+    if (brackets.hasResults(t.bracketData)) return res.status(409).json({ message: 'Cannot regenerate a bracket with recorded results' });
 
     const { teamMap, userMap } = await buildLabelMaps(t);
 
@@ -594,24 +550,8 @@ exports.generateBracket = async (req, res) => {
       return res.status(400).json({ message: "Not enough participants to generate a bracket" });
     }
 
-    let order = participants.slice();
-    order = fisherYatesShuffle(order);
-    order = fisherYatesShuffle(order);
-    order = fisherYatesShuffle(order);
-
-    const rounds = buildSingleElimRounds(order);
-
-    const bd = {
-      generatedAt: new Date().toISOString(),
-      method: "3x-shuffle-single-elimination",
-      participants: order,
-      rounds,
-    };
-
-    promoteByesOneRound(bd);
-
+    const bd = brackets.generate(participants, t.bracket);
     t.bracketData = bd;
-    for (const round of bd.rounds) for (const match of round) match.id = require('node:crypto').randomUUID();
     await t.save();
     res.json({ message: "Bracket generated", bracketData: t.bracketData });
   } catch (err) {
@@ -693,6 +633,17 @@ exports.setMatchResult = async (req, res) => {
       const veto = await VetoSession.findOne({ tournament: t._id, matchId: match.id, current: true }).lean();
       if (veto?.state.phase !== 'completed') return res.status(409).json({ message: 'Complete the map veto before recording the result' });
     }
+    if (bd.graphVersion) {
+      if (match.winner?.id === match[winnerSide]?.id) return res.json({ message: 'Result already saved', bracketData: bd });
+      brackets.result(bd, roundIndex, matchIndex, winnerSide);
+      for (let r = 0; r < bd.rounds.length; r++) for (let m = 0; m < bd.rounds[r].length; m++) {
+        const before = t.bracketData.rounds[r][m], after = bd.rounds[r][m];
+        const changed = ['p1', 'p2'].some(side => before[side]?.id !== after[side]?.id) || before.status !== after.status && after.status === 'not-needed';
+        if (changed && (before.status === 'completed' || await VetoSession.exists({ tournament: t._id, matchId: before.id, current: true }))) return res.status(409).json({ message: 'Downstream results or veto sessions prevent changing these opponents' });
+      }
+      t.bracketData = bd; await t.save();
+      return res.json({ message: 'Result saved', bracketData: bd });
+    }
     let nextR = Number(roundIndex) + 1, nextM = Math.floor(Number(matchIndex) / 2);
     while (bd.rounds[nextR]) {
       const nextMatch = bd.rounds[nextR][nextM];
@@ -711,8 +662,17 @@ exports.setMatchResult = async (req, res) => {
     res.json({ message: "Result saved", bracketData: t.bracketData });
   } catch (err) {
     console.error("setMatchResult error:", err);
-    res.status(500).json({ message: "Failed to save match result" });
+    res.status(err.status || (err.name === 'VersionError' ? 409 : 500)).json({ message: err.status ? err.message : "Failed to save match result. Refresh and retry." });
   }
+};
+
+exports.resetBracket = async (req, res) => {
+  try {
+    const t = await Tournament.findById(req.params.id);
+    if (!t) return res.status(404).json({ message: 'Tournament not found' });
+    if (brackets.hasResults(t.bracketData) || await VetoSession.exists({ tournament: t._id, current: true })) return res.status(409).json({ message: 'Results or active veto sessions prevent clearing this bracket' });
+    t.bracketData = null; await t.save(); res.json({ message: 'Unplayed bracket cleared; registrations retained' });
+  } catch { res.status(409).json({ message: 'Bracket changed. Refresh and retry.' }); }
 };
 
 function ensureMedia(bd, r, m) {

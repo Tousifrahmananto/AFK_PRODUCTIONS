@@ -72,7 +72,8 @@ export default function BracketPage() {
     useEffect(() => { load(); }, [load]);
 
     const rounds = useMemo(() => bracketData?.rounds || [], [bracketData]);
-    const allOffsets = useMemo(() => computeOffsets(rounds, matchHeight), [rounds, matchHeight]);
+    const linearRounds = bracketData?.graphVersion && bracketData.format !== 'Single Elimination';
+    const allOffsets = useMemo(() => linearRounds ? rounds.map(round => round.map((_, i) => i * (matchHeight + MIN_SPACING))) : computeOffsets(rounds, matchHeight), [rounds, matchHeight, linearRounds]);
 
     const columnHeights = useMemo(() =>
         allOffsets.map((offsets) =>
@@ -103,6 +104,8 @@ export default function BracketPage() {
                 <div style={bracketLabel}>BRACKET</div>
             </div>
 
+            {bracketData.standings && <div style={{ overflowX: 'auto', marginBottom: 24 }}><h2>Standings</h2><p>One point per win. Teams with equal wins share a rank.</p><table><thead><tr><th>Rank</th><th>Team</th><th>Played</th><th>Wins</th><th>Losses</th></tr></thead><tbody>{bracketData.standings.map(row => <tr key={row.id}><td>{row.rank}</td><td>{row.label}</td><td>{row.played}</td><td>{row.wins}</td><td>{row.losses}</td></tr>)}</tbody></table></div>}
+
             <div style={bracketContainer} role="region" aria-label="Tournament bracket" tabIndex={0}>
                 <div style={{
                     ...bracketTree,
@@ -126,19 +129,20 @@ export default function BracketPage() {
                                 }}
                             >
                                 <div style={roundHeader}>
-                                    {isLastRound
+                                    {bracketData.roundLabels?.[rIdx] || (isLastRound
                                         ? rounds.length === 1 ? "FINALS" : "GRAND FINALS"
                                         : rIdx === rounds.length - 2
                                             ? "SEMI-FINALS"
-                                            : `ROUND ${rIdx + 1}`}
+                                            : `ROUND ${rIdx + 1}`)}
                                 </div>
 
                                 {round.map((match, mIdx) => {
                                     if (!match) return null;
                                     const top = (offsets[mIdx] ?? 0) + 48;
 
-                                    const p1     = match?.p1?.label || match?.p1?.id || (match?.p1 ? "TBD" : "BYE");
-                                    const p2     = match?.p2?.label || match?.p2?.id || (match?.p2 ? "TBD" : "BYE");
+                                    const empty = match.status === 'pending' ? 'TBD' : match.status === 'not-needed' ? 'Not needed' : 'BYE';
+                                    const p1     = match?.p1?.label || match?.p1?.id || empty;
+                                    const p2     = match?.p2?.label || match?.p2?.id || empty;
                                     const hasP1  = !!match?.p1;
                                     const hasP2  = !!match?.p2;
                                     const p1Won  = match?.winner && JSON.stringify(match.winner) === JSON.stringify(match.p1);
@@ -160,7 +164,7 @@ export default function BracketPage() {
                                                         color: p1Won ? "#2abb9b" : !hasP1 ? "#4a5568" : "#e8ecf2",
                                                         fontStyle: !hasP1 ? "italic" : "normal",
                                                     }}>{p1}</span>
-                                                    {isAdmin && !match?.winner && hasP1 && (
+                                                    {isAdmin && !match?.winner && hasP1 && hasP2 && (!match.status || match.status === 'ready') && (
                                                         <button type="button" style={winButton} onClick={() => clickWinner(rIdx, mIdx, "p1")} title="Set as winner" aria-label={`Set ${p1} as winner of round ${rIdx + 1}, match ${mIdx + 1}`}>
                                                             ✓
                                                         </button>
@@ -175,7 +179,7 @@ export default function BracketPage() {
                                                         color: p2Won ? "#2abb9b" : !hasP2 ? "#4a5568" : "#e8ecf2",
                                                         fontStyle: !hasP2 ? "italic" : "normal",
                                                     }}>{p2}</span>
-                                                    {isAdmin && !match?.winner && hasP2 && (
+                                                    {isAdmin && !match?.winner && hasP2 && hasP1 && (!match.status || match.status === 'ready') && (
                                                         <button type="button" style={winButton} onClick={() => clickWinner(rIdx, mIdx, "p2")} title="Set as winner" aria-label={`Set ${p2} as winner of round ${rIdx + 1}, match ${mIdx + 1}`}>
                                                             ✓
                                                         </button>
@@ -183,7 +187,7 @@ export default function BracketPage() {
                                                 </div>
                                             </div>
 
-                                            {vetoEnabled && match.id && match.p1?.kind === 'team' && match.p2?.kind === 'team' && (isAdmin || [match.p1.id, match.p2.id].some(id => vetoTeamIds.includes(String(id)))) && (
+                                            {vetoEnabled && match.id && (!match.status || ['ready', 'completed'].includes(match.status)) && match.p1?.kind === 'team' && match.p2?.kind === 'team' && (isAdmin || [match.p1.id, match.p2.id].some(id => vetoTeamIds.includes(String(id)))) && (
                                                 <div style={adminControls}><button type="button" style={adminBtn} onClick={() => navigate(`/tournaments/${tournamentId}/matches/${match.id}/veto`)}>Map veto</button></div>
                                             )}
                                             {isAdmin && (
@@ -208,7 +212,7 @@ export default function BracketPage() {
                                     );
                                 })}
 
-                                {hasNext && (
+                                {hasNext && !linearRounds && (
                                     <svg
                                         style={{
                                             position: "absolute",

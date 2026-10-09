@@ -20,6 +20,7 @@ import AdminMediaPage from "./pages/AdminMediaPage";
 import MyAdsPage from "./pages/MyAdsPage";
 
 import LoginPage from "./pages/LoginPage";
+import ChangePasswordPage from './pages/ChangePasswordPage';
 import RegisterPage from "./pages/RegisterPage";
 import TournamentsPage from "./pages/TournamentsPage";
 import BracketPage from "./pages/BracketPage";
@@ -47,6 +48,7 @@ function AppFrame() {
 
         <Route path="/login" element={<GuestOnly><LoginPage /></GuestOnly>} />
         <Route path="/register" element={<GuestOnly><RegisterPage /></GuestOnly>} />
+        <Route path="/change-password" element={<RequireAuth><ChangePasswordPage /></RequireAuth>} />
 
         <Route element={<MemberLayout />}>
           <Route path="/tournaments" element={<TournamentsPage />} />

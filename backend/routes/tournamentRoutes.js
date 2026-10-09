@@ -49,6 +49,7 @@ router.post("/:id/toggle-registration", protect, isAdmin, toggleRegistration);
 router.delete("/:id/remove-solo/:userId", protect, isAdmin, adminRemoveSolo);
 router.delete("/:id/remove-team/:teamId", protect, isAdmin, adminRemoveTeam);
 router.post("/:id/generate-bracket", protect, isAdmin, generateBracket);
+router.post('/:id/reset-bracket', protect, isAdmin, require('../controllers/tournamentController').resetBracket);
 router.post("/:id/bracket/match-result", protect, isAdmin, setMatchResult);
 router.get("/:id/matches/:roundIndex/:matchIndex/player-stats", protect, isAdmin, getPlayerStatsForMatch);
 router.post("/:id/matches/:roundIndex/:matchIndex/player-stats", protect, isAdmin, recordPlayerStatsForMatch);

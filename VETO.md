@@ -29,4 +29,4 @@ Admins can archive/reset a veto before a match result, with a reason; archived h
 
 Map catalogue: `backend/utils/vetoRules.js`. Credentials and production environment values are not changed by this feature. Deploy the backend before the frontend when publishing these changes.
 
-Spreadsheet registration and the three bracket generators are the following implementation phase; this feature does not silently rewrite existing brackets.
+Spreadsheet registration and the three bracket generators are documented in [REGISTRATION_IMPORT.md](REGISTRATION_IMPORT.md). Existing brackets are preserved until an admin explicitly regenerates an unplayed bracket.
