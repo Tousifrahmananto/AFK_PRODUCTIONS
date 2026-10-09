@@ -2,6 +2,35 @@ const { randomInt, randomUUID } = require('node:crypto');
 const fail = message => { throw Object.assign(new Error(message), { status: 409 }); };
 const ref = (match, outcome = 'winner') => ({ matchId: match.id, outcome });
 const settled = match => ['completed', 'bye', 'not-needed'].includes(match.status);
+function compact(bd) {
+  const routes = new Map(), rounds = [], labels = [];
+  // Bypass structural byes before play; an unresolved real match is never a bye.
+  bd.rounds.forEach((round, index) => {
+    const retained = [];
+    for (const match of round) {
+      const slots = ['p1', 'p2'].map(side => {
+        const feed = match.feeds[side];
+        return feed ? routes.get(feed.matchId)[feed.outcome] : match[side] ? { participant: match[side] } : null;
+      });
+      if (!slots[0] || !slots[1]) { routes.set(match.id, { winner: slots[0] || slots[1], loser: null }); continue; }
+      match.feeds = {};
+      ['p1', 'p2'].forEach((side, i) => {
+        match[side] = slots[i].participant || null;
+        if (!slots[i].participant) match.feeds[side] = slots[i];
+      });
+      routes.set(match.id, { winner: ref(match), loser: ref(match, 'loser') });
+      retained.push(match);
+    }
+    if (retained.length) { rounds.push(retained); labels.push(bd.roundLabels[index]); }
+  });
+  bd.rounds = rounds; bd.roundLabels = labels; bd.compact = true;
+  if (bd.participants.length & (bd.participants.length - 1)) bd.roundLabels[0] = bd.format === 'Double Elimination' ? 'Winners play-in' : 'Play-in';
+  if (bd.format === 'Single Elimination') {
+    const names = ['Final', 'Semifinals', 'Quarterfinals'];
+    for (let i = 0; i < Math.min(names.length, rounds.length); i++) if (rounds[rounds.length - 1 - i].length === 2 ** i) bd.roundLabels[rounds.length - 1 - i] = names[i];
+  }
+  return bd;
+}
 function resolve(bd) {
   const byId = new Map();
   for (const round of bd.rounds) for (const match of round) {
@@ -84,7 +113,7 @@ function generate(participants, format) {
     const final = round('Grand final', [{ feeds: { p1: ref(winnerFinal), p2: losers ? ref(losers[0]) : ref(winnerFinal, 'loser') } }])[0];
     round('Grand final reset (if needed)', [{ feeds: { p1: ref(winnerFinal), p2: losers ? ref(losers[0]) : ref(winnerFinal, 'loser') }, resetOf: final.id }]);
   } else bd.roundLabels[bd.roundLabels.length - 1] = 'Final';
-  return resolve(bd);
+  return resolve(compact(bd));
 }
 function result(bd, roundIndex, matchIndex, side) {
   const match = bd.rounds[roundIndex]?.[matchIndex];
