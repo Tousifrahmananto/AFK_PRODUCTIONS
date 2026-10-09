@@ -629,6 +629,8 @@ exports.setMatchResult = async (req, res) => {
     if (!round) return res.status(400).json({ message: "Invalid roundIndex" });
     const match = round[matchIndex];
     if (!match) return res.status(400).json({ message: "Invalid matchIndex" });
+    const feedersReady = bd.graphVersion || Number(roundIndex) === 0 || (brackets.legacyResolved(bd, Number(roundIndex) - 1, Number(matchIndex) * 2) && brackets.legacyResolved(bd, Number(roundIndex) - 1, Number(matchIndex) * 2 + 1));
+    if (!bd.graphVersion && (!feedersReady || !match.p1 || !match.p2)) return res.status(409).json({ message: 'Waiting for both opponents and feeder match results' });
     if (t.vetoSettings?.enabled && match.p1?.kind === 'team' && match.p2?.kind === 'team') {
       const veto = await VetoSession.findOne({ tournament: t._id, matchId: match.id, current: true }).lean();
       if (veto?.state.phase !== 'completed') return res.status(409).json({ message: 'Complete the map veto before recording the result' });

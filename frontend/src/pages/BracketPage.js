@@ -40,6 +40,28 @@ function computeOffsets(rounds, matchHeight) {
     return allOffsets;
 }
 
+function compactOffsets(rounds, matchHeight) {
+    const matches = new Map(rounds.flat().map(match => [match.id, match]));
+    const positions = new Map();
+    let row = 0;
+    function position(match) {
+        if (positions.has(match.id)) return positions.get(match.id);
+        const feeders = Object.values(match.feeds || {}).filter(feed => feed.outcome === 'winner').map(feed => matches.get(feed.matchId)).filter(Boolean);
+        const y = feeders.length ? feeders.reduce((sum, feeder) => sum + position(feeder), 0) / feeders.length : row++ * (matchHeight + MIN_SPACING);
+        positions.set(match.id, y);
+        return y;
+    }
+    for (const round of [...rounds].reverse()) for (const match of round) position(match);
+    return rounds.map(round => round.map(match => positions.get(match.id)));
+}
+
+function legacyReady(rounds, r, m) {
+    const match = rounds[r]?.[m];
+    if (!match) return true;
+    if (r > 0 && (!legacyReady(rounds, r - 1, m * 2) || !legacyReady(rounds, r - 1, m * 2 + 1))) return false;
+    return !!match.winner || !(match.p1 && match.p2);
+}
+
 export default function BracketPage() {
     const { token, user } = useContext(AuthContext);
     const { id: tournamentId } = useParams();
@@ -73,7 +95,7 @@ export default function BracketPage() {
 
     const rounds = useMemo(() => bracketData?.rounds || [], [bracketData]);
     const linearRounds = bracketData?.graphVersion && bracketData.format !== 'Single Elimination';
-    const allOffsets = useMemo(() => linearRounds ? rounds.map(round => round.map((_, i) => i * (matchHeight + MIN_SPACING))) : computeOffsets(rounds, matchHeight), [rounds, matchHeight, linearRounds]);
+    const allOffsets = useMemo(() => linearRounds ? rounds.map(round => round.map((_, i) => i * (matchHeight + MIN_SPACING))) : bracketData?.compact ? compactOffsets(rounds, matchHeight) : computeOffsets(rounds, matchHeight), [rounds, matchHeight, linearRounds, bracketData?.compact]);
 
     const columnHeights = useMemo(() =>
         allOffsets.map((offsets) =>
@@ -145,6 +167,7 @@ export default function BracketPage() {
                                     const p2     = match?.p2?.label || match?.p2?.id || empty;
                                     const hasP1  = !!match?.p1;
                                     const hasP2  = !!match?.p2;
+                                    const ready = match.status ? ['ready', 'completed'].includes(match.status) : rIdx === 0 || (legacyReady(rounds, rIdx - 1, mIdx * 2) && legacyReady(rounds, rIdx - 1, mIdx * 2 + 1));
                                     const p1Won  = match?.winner && JSON.stringify(match.winner) === JSON.stringify(match.p1);
                                     const p2Won  = match?.winner && JSON.stringify(match.winner) === JSON.stringify(match.p2);
 
@@ -164,7 +187,7 @@ export default function BracketPage() {
                                                         color: p1Won ? "#9a9a9a" : !hasP1 ? "#545454" : "#ececec",
                                                         fontStyle: !hasP1 ? "italic" : "normal",
                                                     }}>{p1}</span>
-                                                    {isAdmin && !match?.winner && hasP1 && hasP2 && (!match.status || match.status === 'ready') && (
+                                                    {isAdmin && !match?.winner && hasP1 && hasP2 && ready && (
                                                         <button type="button" style={winButton} onClick={() => clickWinner(rIdx, mIdx, "p1")} title="Set as winner" aria-label={`Set ${p1} as winner of round ${rIdx + 1}, match ${mIdx + 1}`}>
                                                             ✓
                                                         </button>
@@ -179,7 +202,7 @@ export default function BracketPage() {
                                                         color: p2Won ? "#9a9a9a" : !hasP2 ? "#545454" : "#ececec",
                                                         fontStyle: !hasP2 ? "italic" : "normal",
                                                     }}>{p2}</span>
-                                                    {isAdmin && !match?.winner && hasP2 && hasP1 && (!match.status || match.status === 'ready') && (
+                                                    {isAdmin && !match?.winner && hasP2 && hasP1 && ready && (
                                                         <button type="button" style={winButton} onClick={() => clickWinner(rIdx, mIdx, "p2")} title="Set as winner" aria-label={`Set ${p2} as winner of round ${rIdx + 1}, match ${mIdx + 1}`}>
                                                             ✓
                                                         </button>
@@ -187,7 +210,7 @@ export default function BracketPage() {
                                                 </div>
                                             </div>
 
-                                            {vetoEnabled && match.id && (!match.status || ['ready', 'completed'].includes(match.status)) && match.p1?.kind === 'team' && match.p2?.kind === 'team' && (isAdmin || [match.p1.id, match.p2.id].some(id => vetoTeamIds.includes(String(id)))) && (
+                                            {vetoEnabled && match.id && ready && match.p1?.kind === 'team' && match.p2?.kind === 'team' && (isAdmin || [match.p1.id, match.p2.id].some(id => vetoTeamIds.includes(String(id)))) && (
                                                 <div style={adminControls}><button type="button" style={adminBtn} onClick={() => navigate(`/tournaments/${tournamentId}/matches/${match.id}/veto`)}>Map veto</button></div>
                                             )}
                                             {isAdmin && (
@@ -225,7 +248,13 @@ export default function BracketPage() {
                                         }}
                                         aria-hidden="true"
                                     >
-                                        {round.map((_, mIdx) => {
+                                        {bracketData.compact ? round.map((match, mIdx) => {
+                                            const nextIndex = rounds[rIdx + 1].findIndex(next => Object.values(next.feeds || {}).some(feed => feed.matchId === match.id));
+                                            if (nextIndex < 0) return null;
+                                            const from = offsets[mIdx] + 48 + MATCH_H / 2;
+                                            const to = allOffsets[rIdx + 1][nextIndex] + 48 + MATCH_H / 2;
+                                            return <path key={match.id} data-source={match.id} data-target={rounds[rIdx + 1][nextIndex].id} d={`M 0 ${from} H ${ROUND_GAP / 2} V ${to} H ${ROUND_GAP}`} stroke="#555" strokeWidth="2" fill="none" />;
+                                        }) : round.map((_, mIdx) => {
                                             const currTop    = (offsets[mIdx]         ?? 0) + 48;
 
                                             const y1 = currTop + MATCH_H / 2;

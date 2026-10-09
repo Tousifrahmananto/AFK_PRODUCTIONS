@@ -20,7 +20,7 @@ The durable email outbox runs inside the API every 30 seconds and after imports;
 
 ## Bracket randomization
 
-The existing **Bracket** button now uses the tournament's format and one cryptographic Fisher–Yates shuffle, storing participants, stable match IDs and feeder references. Single elimination distributes byes across seeds. Double elimination has winners/losers rounds and a conditional grand-final reset. Round robin uses a circle schedule with each pair playing once; equal wins share a standing rank. Final reset and pending matches do not permit veto or result actions until resolved.
+The existing **Bracket** button uses the tournament's format and one cryptographic Fisher–Yates shuffle, storing participants, stable match IDs and feeder references. Elimination brackets bypass structural byes and omit empty matches: nine teams produce a play-in followed by four quarterfinals, two semifinals and a final, without padding the display to sixteen teams. Pending real matches never auto-advance a team. Double elimination has winners/losers rounds and a conditional grand-final reset. Round robin uses a circle schedule with each pair playing once; equal wins share a standing rank. Final reset and pending matches do not permit veto or result actions until resolved.
 
 Generate after imports. Regeneration is allowed only before any recorded results or current veto sessions. **Clear unplayed bracket** retains registrations and permits another import. Existing historical brackets stay intact. Graph-based result updates refuse to change opponents who already have a result or veto session.
 

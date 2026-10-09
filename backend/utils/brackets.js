@@ -122,4 +122,10 @@ function result(bd, roundIndex, matchIndex, side) {
   return resolve(bd);
 }
 const hasResults = bd => bd?.rounds?.some(round => round.some(match => bd.graphVersion ? match.status === 'completed' : !!match.winner));
-module.exports = { generate, resolve, result, hasResults };
+function legacyResolved(bd, r, m) {
+  const match = bd.rounds[r]?.[m];
+  if (!match) return true;
+  if (r > 0 && (!legacyResolved(bd, r - 1, m * 2) || !legacyResolved(bd, r - 1, m * 2 + 1))) return false;
+  return !!match.winner || !(match.p1 && match.p2);
+}
+module.exports = { generate, resolve, result, hasResults, legacyResolved };

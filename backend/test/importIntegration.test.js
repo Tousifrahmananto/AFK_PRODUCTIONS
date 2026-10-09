@@ -147,3 +147,15 @@ test('a batch resumes after 25 rows without duplicating accounts; private export
   assert.equal(table(Buffer.from(await download.text())).length, 1);
   tournament = previousTournament;
 });
+
+test('legacy nine-team brackets cannot award a future final while feeders are unresolved', async () => {
+  const participants = Array.from({ length: 9 }, (_, i) => ({ id: String(new mongoose.Types.ObjectId()), label: `Legacy ${i}`, kind: 'team' }));
+  const match = (p1 = null, p2 = null) => ({ id: crypto.randomUUID(), p1, p2, winner: null });
+  const legacy = await Tournament.create({ title: 'Legacy guard cup', game: 'Valorant', teamLimit: 9, startDate: '2050-10-20', endDate: '2050-10-21', registrationDeadline: '2050-10-19', bracketData: { rounds: [
+    [match(participants[0], participants[1]), match(participants[2], participants[3]), match(participants[4], participants[5]), match(participants[6], participants[7]), match(participants[8]), match(), match(), match()],
+    [match(), match(), match(participants[8]), match()], [match(), match(participants[8])], [match(participants[0], participants[8])],
+  ] } });
+  const response = await api(`/tournaments/${legacy._id}/bracket/match-result`, admin, { roundIndex: 3, matchIndex: 0, winnerSide: 'p2' });
+  assert.equal(response.status, 409); assert.match(response.data.message, /feeder/);
+  assert.equal((await Tournament.findById(legacy._id)).bracketData.rounds[3][0].winner, null);
+});

@@ -9,11 +9,32 @@ test('nine-team elimination has no padded matches and no team starts in the fina
   assert.equal(single.rounds.flat().some(m => m.status === 'bye' || m.winner), false);
   assert.equal(single.rounds.at(-1)[0].p1, null);
   assert.equal(single.rounds.at(-1)[0].p2, null);
+  result(single, 0, 0, 'p1');
+  result(single, 1, 0, 'p1');
+  assert.equal(single.rounds[2][0].status, 'pending');
+  assert.equal(single.rounds[2][0].winner, null);
+  assert.equal(single.rounds[3][0].p1, null);
+  assert.equal(single.rounds[3][0].p2, null);
   const double = generate(participants, 'Double Elimination');
   assert.equal(double.rounds.flat().length, 17);
   assert.equal(double.rounds.flat().some(m => m.status === 'bye' || m.winner), false);
   const ids = new Set(double.rounds.flat().map(m => m.id));
   for (const match of double.rounds.flat()) for (const feed of Object.values(match.feeds)) assert.ok(ids.has(feed.matchId));
+});
+test('compact elimination preserves correct loss counts for every field size from 2 to 32', () => {
+  for (let n = 2; n <= 32; n++) for (const format of ['Single Elimination', 'Double Elimination']) {
+    const bd = generate(Array.from({ length: n }, (_, i) => ({ id: String(i), label: `Team ${i}` })), format);
+    assert.equal(bd.rounds.flat().some(m => m.status === 'bye'), false);
+    assert.equal(bd.rounds.flat().length, format === 'Single Elimination' ? n - 1 : 2 * n - 1);
+    const losses = new Map();
+    for (let r = 0; r < bd.rounds.length; r++) for (let m = 0; m < bd.rounds[r].length; m++) if (bd.rounds[r][m].status === 'ready') {
+      const match = bd.rounds[r][m], side = (r + m + n) % 2 ? 'p1' : 'p2';
+      const loser = match[side === 'p1' ? 'p2' : 'p1'].id;
+      losses.set(loser, (losses.get(loser) || 0) + 1); result(bd, r, m, side);
+    }
+    assert.equal(bd.rounds.flat().some(m => ['ready', 'pending', 'bye'].includes(m.status)), false);
+    assert.equal([...losses.values()].filter(count => count === (format === 'Single Elimination' ? 1 : 2)).length, n - 1);
+  }
 });
 for (const format of ['Single Elimination', 'Double Elimination', 'Round Robin']) for (const count of [2, 3, 8, 9, 16]) for (const reset of format === 'Double Elimination' ? [false, true] : [false]) {
   test(`${format}: ${count} teams${reset ? ', final reset' : ''}`, () => {

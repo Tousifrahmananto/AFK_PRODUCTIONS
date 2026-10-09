@@ -42,3 +42,21 @@ test("player rows keep normal spacing without admin controls", async () => {
   expect(parseFloat(matches[1].style.top) - parseFloat(matches[0].style.top)).toBe(116);
   expect(screen.queryByRole("button", { name: /Stats for/ })).not.toBeInTheDocument();
 });
+
+test('compact play-in connects only its real feeder and pending matches cannot be awarded', async () => {
+  const p = id => ({ id, label: id });
+  getBracket.mockResolvedValue({ title: 'Layout Cup', bracketData: { graphVersion: 1, compact: true, format: 'Single Elimination', roundLabels: ['Play-in', 'Semifinals', 'Final'], rounds: [
+    [{ id: 'play-in', p1: p('a'), p2: p('b'), feeds: {}, status: 'ready' }],
+    [{ id: 'semi-1', p1: p('c'), p2: null, feeds: { p2: { matchId: 'play-in', outcome: 'winner' } }, status: 'pending' }, { id: 'semi-2', p1: p('d'), p2: p('e'), feeds: {}, status: 'ready' }],
+    [{ id: 'final', p1: null, p2: null, feeds: { p1: { matchId: 'semi-1', outcome: 'winner' }, p2: { matchId: 'semi-2', outcome: 'winner' } }, status: 'pending' }],
+  ] } });
+  const matches = await show('Admin');
+  expect(matches.length).toBe(4);
+  expect(matches[0].style.top).toBe(matches[1].style.top);
+  expect(parseFloat(matches[2].style.top) - parseFloat(matches[1].style.top)).toBe(160);
+  expect(parseFloat(matches[3].style.top)).toBe((parseFloat(matches[1].style.top) + parseFloat(matches[2].style.top)) / 2);
+  expect(document.querySelector('[data-source="play-in"]').getAttribute('data-target')).toBe('semi-1');
+  expect(matches[1].querySelector('button[title="Set as winner"]')).toBeNull();
+  expect(matches[3].querySelector('button[title="Set as winner"]')).toBeNull();
+  expect(screen.queryByText('BYE')).not.toBeInTheDocument();
+});
