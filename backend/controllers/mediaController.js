@@ -1,4 +1,3 @@
-const path = require("path");
 const Media = require("../models/Media");
 
 const toTags = (v) =>
@@ -89,52 +88,6 @@ exports.listMedia = async (req, res) => {
             .populate({ path: "uploadedBy", select: "username role" })
             .sort({ createdAt: -1 })
             .lean();
-
-        if (!items || items.length === 0) {
-            try {
-                const fs = require("fs");
-                const path = require("path");
-                const UP = path.join(__dirname, "..", "uploads");
-                const files = [];
-                if (fs.existsSync(UP)) {
-                    const walk = (dir) => {
-                        for (const f of fs.readdirSync(dir)) {
-                            const full = path.join(dir, f);
-                            const stat = fs.statSync(full);
-                            if (stat.isDirectory()) {
-                                walk(full);
-                            } else {
-                                files.push(full);
-                            }
-                        }
-                    };
-                    walk(UP);
-                }
-
-                const seen = files.map((p) => {
-                    const relative = p.replace(path.join(__dirname, ".."), "").replace(/\\/g, "/");
-                    const url = relative.startsWith("/uploads") ? relative : "/uploads" + relative;
-                    const ext = path.extname(p).toLowerCase();
-                    const isImage = [".png", ".jpg", ".jpeg", ".webp", ".gif"].includes(ext);
-                    const isVideo = [".mp4", ".webm", ".ogg", ".mov"].includes(ext);
-                    const kindLocal = isVideo ? "video" : "image";
-                    return {
-                        _id: "file:" + path.basename(p),
-                        title: path.basename(p),
-                        description: "(file fallback)",
-                        kind: kindLocal,
-                        filePath: url,
-                        externalUrl: "",
-                        thumbnailUrl: "",
-                        visibility: "Public",
-                    };
-                });
-
-                return res.json(seen);
-            } catch (e) {
-                console.error("listMedia fallback error:", e);
-            }
-        }
 
         res.json(items);
     } catch (err) {

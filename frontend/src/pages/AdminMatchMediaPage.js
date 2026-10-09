@@ -1,3 +1,4 @@
+import PrivateMedia from "../components/PrivateMedia";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
@@ -168,20 +169,12 @@ export default function AdminMatchMediaPage() {
                                             <div style={{ marginBottom: 8, fontWeight: 600, fontSize: 14 }}>
                                                 {v.originalName || v.url.split("/").pop()}
                                             </div>
-                                            <video
+                                            <PrivateMedia as="video"
                                                 src={v.url}
                                                 controls
                                                 style={{ width: "100%", borderRadius: 8, background: "#111827" }}
                                             />
                                             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
-                                                <a
-                                                    href={v.url}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    style={{ color: "#93c5fd", textDecoration: "none" }}
-                                                >
-                                                    Open
-                                                </a>
                                                 <button
                                                     style={styles.btnGhost}
                                                     onClick={() => handleDelete("video", v.url)}
@@ -221,22 +214,13 @@ export default function AdminMatchMediaPage() {
                                             <div style={{ marginBottom: 8, fontWeight: 600, fontSize: 14 }}>
                                                 {img.originalName || img.url.split("/").pop()}
                                             </div>
-                                            <a href={img.url} target="_blank" rel="noreferrer">
-                                                <img
-                                                    src={img.url}
-                                                    alt={img.originalName || ""}
-                                                    style={{ width: "100%", borderRadius: 8, background: "#111827" }}
-                                                />
-                                            </a>
+                                            <PrivateMedia open
+                                                src={img.url}
+                                                alt={img.originalName || ""}
+                                                style={{ width: "100%", borderRadius: 8, background: "#111827" }}
+                                            />
+
                                             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
-                                                <a
-                                                    href={img.url}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    style={{ color: "#93c5fd", textDecoration: "none" }}
-                                                >
-                                                    Open
-                                                </a>
                                                 <button
                                                     style={styles.btnGhost}
                                                     onClick={() => handleDelete("image", img.url)}

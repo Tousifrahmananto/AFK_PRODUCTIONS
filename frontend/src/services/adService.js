@@ -30,11 +30,12 @@ export async function deleteAd(id) {
 
 export async function getPlacement(params = {}) {
     const q = new URLSearchParams(params).toString();
-    const res = await fetch(`${API}/ads/placement?${q}`);
+    const res = await fetch(`${API}/ads/placement?${q}`, { headers: authHeaders() });
+    if (!res.ok) throw new Error("Unable to load ads");
     return res.json();
 }
 export async function clickAd(id) {
     try {
-        await fetch(`${API}/ads/${id}/click`, { method: "POST" });
+        await fetch(`${API}/ads/${id}/click`, { method: "POST", headers: authHeaders() });
     } catch { }
 }

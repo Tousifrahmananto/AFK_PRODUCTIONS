@@ -1,3 +1,4 @@
+import PrivateMedia from "../components/PrivateMedia";
 import React, { useEffect, useState } from "react";
 import { listMyAds, createAd, deleteAd } from "../services/adService";
 
@@ -172,7 +173,7 @@ export default function MyAdsPage() {
               </div>
 
               {ad.imageUrl && (
-                <img
+                <PrivateMedia
                   src={ad.imageUrl}
                   alt=""
                   style={{ width: "100%", marginTop: 6, borderRadius: 8 }}

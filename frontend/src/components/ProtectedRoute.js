@@ -2,36 +2,25 @@ import React, { useContext } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
-export function RequireAdmin({ children }) {
-    const ctx = useContext(AuthContext) || {};
+export function RequireAuth({ children }) {
+    const { user, token, loading } = useContext(AuthContext) || {};
     const location = useLocation();
-
-    const tokenFromCtx = ctx.token;
-    const tokenFromLS = typeof window !== "undefined" ? localStorage.getItem("token") : "";
-    const hasToken = Boolean(tokenFromCtx || tokenFromLS);
-
-    if (!hasToken) {
-        return <Navigate to="/login" replace state={{ from: location }} />;
-    }
-
-    if (!ctx.user) return null;
-    if (ctx.user.role !== "Admin") {
-        return <Navigate to="/" replace />;
-    }
-
+    if (loading) return <p role="status" style={{ padding: 24 }}>Verifying your session…</p>;
+    if (!user || !token) return <Navigate to="/login" replace state={{ from: location }} />;
     return children;
 }
 
-export function RequireAuth({ children }) {
-    const ctx = useContext(AuthContext) || {};
-    const location = useLocation();
+export function RequireRole({ roles, children }) {
+    const { user } = useContext(AuthContext) || {};
+    return <RequireAuth>{roles.includes(user?.role) ? children : <Navigate to="/" replace />}</RequireAuth>;
+}
 
-    const tokenFromCtx = ctx.token;
-    const tokenFromLS = typeof window !== "undefined" ? localStorage.getItem("token") : "";
-    const hasToken = Boolean(tokenFromCtx || tokenFromLS);
+export function RequireAdmin({ children }) {
+    return <RequireRole roles={["Admin"]}>{children}</RequireRole>;
+}
 
-    if (!hasToken) {
-        return <Navigate to="/login" replace state={{ from: location }} />;
-    }
-    return children;
+export function GuestOnly({ children }) {
+    const { user, token, loading } = useContext(AuthContext) || {};
+    if (loading) return <p role="status" style={{ padding: 24 }}>Verifying your session…</p>;
+    return user && token ? <Navigate to="/tournaments" replace /> : children;
 }

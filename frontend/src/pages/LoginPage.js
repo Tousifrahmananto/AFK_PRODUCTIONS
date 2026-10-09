@@ -1,11 +1,12 @@
 import React, { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { login as loginUser } from "../services/authService";
 import { AuthContext } from "../context/AuthContext";
 
 const LoginPage = () => {
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
+    const location = useLocation();
     const [credentials, setCredentials] = useState({ email: "", password: "" });
 
     const handleChange = (e) =>
@@ -16,7 +17,7 @@ const LoginPage = () => {
         try {
             const res = await loginUser(credentials);
             login(res.user, res.token);
-            navigate(`/profile/${res.user._id}`);
+            navigate(location.state?.from || "/tournaments", { replace: true });
         } catch (err) {
             alert(err.response?.data?.message || err.message || "Login failed");
         }

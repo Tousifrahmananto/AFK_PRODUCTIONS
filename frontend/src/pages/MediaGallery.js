@@ -1,5 +1,7 @@
+import PrivateMedia from "../components/PrivateMedia";
 // client/src/pages/MediaGallery.js
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { AuthContext } from "../context/AuthContext";
 import { fetchMedia } from "../services/mediaService"; // GET /api/media
 
 function computeApiOrigin() {
@@ -13,6 +15,7 @@ function computeApiOrigin() {
 }
 
 export default function MediaGallery() {
+    const { token } = useContext(AuthContext);
     const API_ORIGIN = useMemo(() => computeApiOrigin(), []);
     const toUrl = (p) => {
         if (!p) return "";
@@ -26,7 +29,7 @@ export default function MediaGallery() {
     useEffect(() => {
         (async () => {
             try {
-                const data = await fetchMedia({}); // your API returns both images & videos
+                const data = await fetchMedia({}, token);
                 const list = Array.isArray(data) ? data : [];
                 // normalize a preview URL for each item
                 setItems(
@@ -41,7 +44,7 @@ export default function MediaGallery() {
             }
         })();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [token]);
 
     const filterList = (arr) => {
         const needle = q.trim().toLowerCase();
@@ -119,7 +122,7 @@ export default function MediaGallery() {
 
                         {/* Preview */}
                         {m.kind === "image" && m.previewUrl && (
-                            <img
+                            <PrivateMedia
                                 src={m.previewUrl}
                                 alt={m.title}
                                 title={m.previewUrl}
@@ -128,7 +131,7 @@ export default function MediaGallery() {
                             />
                         )}
                         {m.kind === "video" && m.previewUrl && (
-                            <video
+                            <PrivateMedia as="video"
                                 src={m.previewUrl}
                                 controls
                                 style={{ width: "100%", height: 180, objectFit: "cover", borderRadius: 8, background: "#000" }}

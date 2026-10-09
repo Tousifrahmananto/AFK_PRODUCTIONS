@@ -1,3 +1,4 @@
+import PrivateMedia from "../components/PrivateMedia";
 import React, { useContext, useEffect, useState, useMemo } from "react";
 import { AuthContext } from "../context/AuthContext";
 import {
@@ -267,14 +268,14 @@ export default function AdminMediaPage() {
                             </div>
 
                             {m.kind === "image" && (m.filePath || m.externalUrl) && (
-                                <img
+                                <PrivateMedia
                                     src={toUrl(m.filePath || m.externalUrl)}
                                     alt={m.title}
                                     style={{ width: "100%", borderRadius: 8, marginTop: 8 }}
                                 />
                             )}
                             {m.kind === "video" && (m.filePath || m.externalUrl) && (
-                                <video
+                                <PrivateMedia as="video"
                                     src={toUrl(m.filePath || m.externalUrl)}
                                     controls
                                     style={{ width: "100%", marginTop: 8, borderRadius: 8, background: "#000" }}

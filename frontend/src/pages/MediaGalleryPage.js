@@ -1,23 +1,18 @@
-import React, { useEffect, useMemo, useState } from "react";
+import PrivateMedia from "../components/PrivateMedia";
+import React, { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../context/AuthContext";
 import { fetchMedia } from "../services/mediaService";
 
-function computeApiOrigin() {
-    const api = process.env.REACT_APP_API || process.env.REACT_APP_API_URL || "";
-    if (api) return api.replace(/\/api\/?$/i, "");
-    try {
-        return window.location.origin.replace(":3000", ":5000");
-    } catch {
-        return "http://localhost:5000";
-    }
-}
+import { API_ORIGIN } from "../services/apiConfig";
 
-export default function MediaGallery() {
-    const API_ORIGIN = useMemo(() => computeApiOrigin(), []);
-    const toUrl = (p) => {
+const toUrl = (p) => {
         if (!p) return "";
         if (/^https?:\/\//i.test(p)) return p;
         return `${API_ORIGIN}${p.startsWith("/") ? "" : "/"}${p}`;
-    };
+};
+
+export default function MediaGallery() {
+    const { token } = useContext(AuthContext);
 
     const [items, setItems] = useState([]);
     const [q, setQ] = useState("");
@@ -25,7 +20,7 @@ export default function MediaGallery() {
     useEffect(() => {
         (async () => {
             try {
-                const data = await fetchMedia({});
+                const data = await fetchMedia({}, token);
                 const list = Array.isArray(data) ? data : [];
                 setItems(
                     list.map((m) => ({
@@ -38,7 +33,7 @@ export default function MediaGallery() {
                 alert(e?.response?.data?.message || "Failed to load media");
             }
         })();
-    }, []);
+    }, [token]);
 
     const filterList = (arr) => {
         const needle = q.trim().toLowerCase();
@@ -115,7 +110,7 @@ export default function MediaGallery() {
                         </div>
 
                         {m.kind === "image" && m.previewUrl && (
-                            <img
+                            <PrivateMedia
                                 src={m.previewUrl}
                                 alt={m.title}
                                 title={m.previewUrl}
@@ -124,7 +119,7 @@ export default function MediaGallery() {
                             />
                         )}
                         {m.kind === "video" && m.previewUrl && (
-                            <video
+                            <PrivateMedia as="video"
                                 src={m.previewUrl}
                                 controls
                                 style={{ width: "100%", height: 180, objectFit: "cover", borderRadius: 8, background: "#000" }}

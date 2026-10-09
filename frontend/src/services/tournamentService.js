@@ -67,14 +67,14 @@ export async function generateBracket(id, token) {
 
 export async function getBracketVisibility(id, token) {
   const res = await axios.get(`${API}/tournaments/${id}/bracket/visibility`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    headers: authHeader(token),
   });
   return res.data;
 }
 
 export async function getBracket(id, token) {
   const res = await axios.get(`${API}/tournaments/${id}/bracket`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    headers: authHeader(token),
   });
   return res.data;
 }

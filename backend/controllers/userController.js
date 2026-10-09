@@ -6,7 +6,9 @@ const Tournament = require("../models/Tournament");
 async function getUserPublic(req, res) {
   try {
     const u = await User.findById(req.params.id)
-      .select("_id username email role isBanned banned createdAt updatedAt");
+      .select(req.user.role === "Admin" || req.user.userId === req.params.id
+        ? "_id username email role isBanned banned createdAt updatedAt"
+        : "_id username role createdAt updatedAt");
     if (!u) return res.status(404).json({ message: "User not found" });
     res.json(u);
   } catch (e) {
@@ -48,7 +50,9 @@ async function getUserProfile(req, res) {
     }
 
     const raw = await User.findById(id)
-      .select("-password -passwordHash -__v")
+      .select(req.user.role === "Admin" || req.user.userId === id
+        ? "-password -passwordHash -__v"
+        : "_id username role team createdAt updatedAt")
       .populate({ path: "team", select: "teamName name logoUrl" })
       .lean();
 

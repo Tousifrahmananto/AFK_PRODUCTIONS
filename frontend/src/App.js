@@ -4,9 +4,9 @@ import {
   Routes,
   Route,
   Navigate,
-  useLocation,
+  Outlet,
 } from "react-router-dom";
-import { RequireAdmin, RequireAuth } from "./components/ProtectedRoute";
+import { RequireAdmin, RequireAuth, RequireRole, GuestOnly } from "./components/ProtectedRoute";
 import NotificationsPage from "./pages/NotificationsPage";
 import AdminMatchMediaPage from "./pages/AdminMatchMediaPage";
 
@@ -32,62 +32,62 @@ import LeaderboardPage from "./pages/LeaderboardPage";
 
 import CreateTournamentPage from "./pages/CreateTournamentPage";
 
+function MemberLayout() {
+  return <RequireAuth><Navbar /><Outlet /></RequireAuth>;
+}
+
 function AppFrame() {
-  const { pathname } = useLocation();
-
-  const hideOn = new Set(["/login", "/register"]);
-  const showNavbar = !hideOn.has(pathname);
-
   return (
     <div style={{ background: "#0b0d12", color: "#E6F0FF", minHeight: "100vh" }}>
-      {showNavbar && <Navbar />}
 
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
 
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<GuestOnly><LoginPage /></GuestOnly>} />
+        <Route path="/register" element={<GuestOnly><RegisterPage /></GuestOnly>} />
 
-        <Route path="/tournaments" element={<TournamentsPage />} />
-        <Route path="/browse" element={<TournamentsBrowsePage />} />
-        <Route path="/tournaments/:id/bracket" element={<BracketPage />} />
+        <Route element={<MemberLayout />}>
+          <Route path="/tournaments" element={<TournamentsPage />} />
+          <Route path="/browse" element={<TournamentsBrowsePage />} />
+          <Route path="/tournaments/:id/bracket" element={<BracketPage />} />
 
-        <Route path="/leaderboard" element={<LeaderboardPage />} />
-        <Route path="/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
 
-        <Route path="/create-team" element={<CreateTeamPage />} />
-        <Route path="/my-team" element={<MyTeamPage />} />
-        <Route path="/teams/create" element={<CreateTeamPage />} />
-        <Route path="/teams/my" element={<MyTeamPage />} />
+          <Route path="/create-team" element={<RequireRole roles={["Admin", "TeamManager"]}><CreateTeamPage /></RequireRole>} />
+          <Route path="/my-team" element={<MyTeamPage />} />
+          <Route path="/teams/create" element={<RequireRole roles={["Admin", "TeamManager"]}><CreateTeamPage /></RequireRole>} />
+          <Route path="/teams/my" element={<MyTeamPage />} />
 
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/profile/:id" element={<ProfilePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/:id" element={<ProfilePage />} />
 
-        <Route path="/gallery" element={<MediaGalleryPage />} />
-        <Route path="/media" element={<MediaGalleryPage />} />
-        <Route path="/admin/media" element={<RequireAdmin><AdminMediaPage /></RequireAdmin>} />
-        <Route path="/ads/mine" element={<MyAdsPage />} />
+          <Route path="/gallery" element={<MediaGalleryPage />} />
+          <Route path="/media" element={<MediaGalleryPage />} />
+          <Route path="/admin/media" element={<RequireAdmin><AdminMediaPage /></RequireAdmin>} />
+          <Route path="/ads/mine" element={<RequireRole roles={["Admin", "Sponsor", "Partner"]}><MyAdsPage /></RequireRole>} />
 
-        <Route path="/admin/create-tournament" element={<RequireAdmin><CreateTournamentPage /></RequireAdmin>} />
-        <Route path="/admin/user-moderation" element={<RequireAdmin><AdminUserModerationPage /></RequireAdmin>} />
-        <Route
-          path="/admin/match-stats/:tournamentId"
-          element={
-            <RequireAdmin>
-              <AdminMatchStatsPage />
-            </RequireAdmin>
-          }
-        />
-        <Route
-          path="/admin/match-media/:id"
-          element={
-            <RequireAdmin>
-              <AdminMatchMediaPage />
-            </RequireAdmin>
-          }
-        />
+          <Route path="/admin/create-tournament" element={<RequireAdmin><CreateTournamentPage /></RequireAdmin>} />
+          <Route path="/admin/user-moderation" element={<RequireAdmin><AdminUserModerationPage /></RequireAdmin>} />
+          <Route
+            path="/admin/match-stats/:tournamentId"
+            element={
+              <RequireAdmin>
+                <AdminMatchStatsPage />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/match-media/:id"
+            element={
+              <RequireAdmin>
+                <AdminMatchMediaPage />
+              </RequireAdmin>
+            }
+          />
 
+        </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </div>

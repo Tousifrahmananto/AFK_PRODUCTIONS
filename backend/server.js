@@ -31,11 +31,12 @@ const io = new Server(server, {
 
 const uploadsDir = path.join(__dirname, "uploads");
 console.log("[static] /uploads ->", uploadsDir, "exists:", fs.existsSync(uploadsDir));
-app.use("/uploads", express.static(uploadsDir));
 
 app.set("io", io);
 
 const { protect, protectSocket } = require("./middlewares/authMiddleware");
+const noStore = (_req, res, next) => { res.set("Cache-Control", "no-store"); next(); };
+app.use("/uploads", noStore, protect, express.static(uploadsDir));
 io.use(protectSocket);
 io.on("connection", (socket) => {
   socket.join(`user:${socket.data.userId}`);
@@ -56,12 +57,9 @@ app.get("/api/health", (_req, res) =>
   res.json({ ok: true, ts: new Date().toISOString() })
 );
 
-app.use("/api/media", (req, res, next) => {
-  res.set("Cache-Control", "no-store");
-  next();
-});
-
+app.use("/api", noStore);
 app.use("/api/auth", authRoutes);
+app.use("/api", protect);
 app.use("/api/users", userRoutes);
 app.use("/api/tournaments", tournamentRoutes);
 app.use("/api/teams", teamRoutes);
@@ -73,7 +71,7 @@ app.use("/api/leaderboard", leaderboardRoutes);
 const MONGO_URI =
   process.env.MONGO_URI || "mongodb://127.0.0.1:27017/afk_productions";
 
-mongoose
+if (require.main === module) mongoose
   .connect(MONGO_URI)
   .then(() => {
     console.log("MongoDB connected");
@@ -85,3 +83,5 @@ mongoose
     console.error("MongoDB connection error:", err.message);
     process.exit(1);
   });
+
+module.exports = { app, server, io };

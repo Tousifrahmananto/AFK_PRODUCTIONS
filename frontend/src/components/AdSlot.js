@@ -1,3 +1,4 @@
+import PrivateMedia from "./PrivateMedia";
 import React, { useEffect, useState } from "react";
 import { getPlacement, clickAd } from "../services/adService";
 
@@ -6,8 +7,10 @@ export default function AdSlot({ category = "Homepage", game = "", tournament = 
 
     useEffect(() => {
         (async () => {
-            const data = await getPlacement({ category, game, tournament });
-            setAds(data || []);
+            try {
+                const data = await getPlacement({ category, game, tournament });
+                setAds(Array.isArray(data) ? data : []);
+            } catch { setAds([]); }
         })();
     }, [category, game, tournament]);
 
@@ -18,7 +21,7 @@ export default function AdSlot({ category = "Homepage", game = "", tournament = 
         <div style={{ background: "#151922", border: "1px solid #232838", borderRadius: 12, padding: 10 }}>
             <div style={{ fontSize: 12, opacity: .7, marginBottom: 6 }}>{ad.category} Ad</div>
             {ad.imageUrl ? (
-                <img
+                <PrivateMedia
                     src={ad.imageUrl}
                     alt={ad.title}
                     style={{ width: "100%", borderRadius: 8, cursor: "pointer" }}
