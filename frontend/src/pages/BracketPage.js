@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import {
@@ -10,15 +10,14 @@ import AdSlot from "../components/AdSlot";
 const MATCH_H      = 92;
 const MATCH_W      = 240;
 const ROUND_GAP    = 80;
-const STUB         = 36;
-const MIN_SPACING  = 20;
+const MIN_SPACING  = 24;
 
-function computeOffsets(rounds) {
+function computeOffsets(rounds, matchHeight) {
     if (!rounds || rounds.length === 0) return [];
 
     const firstCount = rounds[0].length;
     const firstOffsets = Array.from({ length: firstCount }, (_, i) =>
-        i * (MATCH_H + MIN_SPACING)
+        i * (matchHeight + MIN_SPACING)
     );
 
     const allOffsets = [firstOffsets];
@@ -51,6 +50,7 @@ export default function BracketPage() {
     const [bracketData, setBracketData] = useState(null);
 
     const isAdmin = user?.role === "Admin";
+    const matchHeight = MATCH_H + (isAdmin ? 44 : 0);
 
     const load = useCallback(async () => {
         try {
@@ -68,13 +68,13 @@ export default function BracketPage() {
     useEffect(() => { load(); }, [load]);
 
     const rounds = useMemo(() => bracketData?.rounds || [], [bracketData]);
-    const allOffsets = useMemo(() => computeOffsets(rounds), [rounds]);
+    const allOffsets = useMemo(() => computeOffsets(rounds, matchHeight), [rounds, matchHeight]);
 
     const columnHeights = useMemo(() =>
         allOffsets.map((offsets) =>
-            offsets.length === 0 ? 0 : offsets[offsets.length - 1] + MATCH_H
+            offsets.length === 0 ? 0 : offsets[offsets.length - 1] + matchHeight
         ),
-    [allOffsets]);
+    [allOffsets, matchHeight]);
 
     const maxHeight = useMemo(() =>
         columnHeights.reduce((a, b) => Math.max(a, b), MATCH_H),
@@ -93,34 +93,32 @@ export default function BracketPage() {
     if (!bracketData) return <div style={wrap}><div style={emptyBox}>No bracket generated yet.</div></div>;
 
     return (
-        <div style={wrap}>
+        <div style={wrap} className="afk-bracket">
             <div style={header}>
                 <h1 style={headerTitle}>{title || "Tournament"}</h1>
                 <div style={bracketLabel}>BRACKET</div>
             </div>
 
-            <div style={bracketContainer}>
+            <div style={bracketContainer} role="region" aria-label="Tournament bracket" tabIndex={0}>
                 <div style={{
                     ...bracketTree,
-                    height: maxHeight + 60,
-                    minWidth: rounds.length * (MATCH_W + ROUND_GAP) + 48,
+                    height: maxHeight + 64,
+                    gridTemplateColumns: `repeat(${Math.max(1, rounds.length)}, minmax(${MATCH_W}px, 1fr))`,
+                    minWidth: rounds.length * MATCH_W + Math.max(0, rounds.length - 1) * ROUND_GAP,
+                    maxWidth: rounds.length * 360 + Math.max(0, rounds.length - 1) * ROUND_GAP,
                 }}>
 
                     {rounds.map((round, rIdx) => {
                         const offsets      = allOffsets[rIdx] || [];
-                        const nextOffsets  = allOffsets[rIdx + 1] || [];
                         const hasNext      = rIdx < rounds.length - 1;
                         const isLastRound  = rIdx === rounds.length - 1;
-
-                        const colLeft = rIdx * (MATCH_W + ROUND_GAP);
 
                         return (
                             <div
                                 key={rIdx}
                                 style={{
                                     ...roundColumn,
-                                    left: colLeft,
-                                    height: maxHeight + 60,
+                                    height: maxHeight + 64,
                                 }}
                             >
                                 <div style={roundHeader}>
@@ -145,7 +143,8 @@ export default function BracketPage() {
                                     return (
                                         <div
                                             key={mIdx}
-                                            style={{ ...matchWrapper, position: "absolute", top, left: 0, width: MATCH_W }}
+                                            className="afk-bracket-match"
+                                            style={{ ...matchWrapper, position: "absolute", top, left: 0, width: "100%" }}
                                         >
                                             <div style={{
                                                 ...matchBox,
@@ -158,7 +157,7 @@ export default function BracketPage() {
                                                         fontStyle: !hasP1 ? "italic" : "normal",
                                                     }}>{p1}</span>
                                                     {isAdmin && !match?.winner && hasP1 && (
-                                                        <button style={winButton} onClick={() => clickWinner(rIdx, mIdx, "p1")} title="Set as winner">
+                                                        <button type="button" style={winButton} onClick={() => clickWinner(rIdx, mIdx, "p1")} title="Set as winner" aria-label={`Set ${p1} as winner of round ${rIdx + 1}, match ${mIdx + 1}`}>
                                                             ✓
                                                         </button>
                                                     )}
@@ -173,7 +172,7 @@ export default function BracketPage() {
                                                         fontStyle: !hasP2 ? "italic" : "normal",
                                                     }}>{p2}</span>
                                                     {isAdmin && !match?.winner && hasP2 && (
-                                                        <button style={winButton} onClick={() => clickWinner(rIdx, mIdx, "p2")} title="Set as winner">
+                                                        <button type="button" style={winButton} onClick={() => clickWinner(rIdx, mIdx, "p2")} title="Set as winner" aria-label={`Set ${p2} as winner of round ${rIdx + 1}, match ${mIdx + 1}`}>
                                                             ✓
                                                         </button>
                                                     )}
@@ -183,15 +182,19 @@ export default function BracketPage() {
                                             {isAdmin && (
                                                 <div style={adminControls}>
                                                     <button
+                                                        type="button"
                                                         style={adminBtn}
                                                         title="Match Stats"
+                                                        aria-label={`Stats for round ${rIdx + 1}, match ${mIdx + 1}`}
                                                         onClick={() => navigate(`/admin/match-stats/${tournamentId}?r=${rIdx}&m=${mIdx}`)}
-                                                    >📊 Stats</button>
+                                                    >Stats</button>
                                                     <button
+                                                        type="button"
                                                         style={adminBtn}
                                                         title="Match Media"
+                                                        aria-label={`Media for round ${rIdx + 1}, match ${mIdx + 1}`}
                                                         onClick={() => navigate(`/admin/match-media/${tournamentId}?r=${rIdx}&m=${mIdx}`)}
-                                                    >📷 Media</button>
+                                                    >Match media</button>
                                                 </div>
                                             )}
                                         </div>
@@ -203,23 +206,20 @@ export default function BracketPage() {
                                         style={{
                                             position: "absolute",
                                             top: 0,
-                                            left: MATCH_W,
+                                            left: "100%",
                                             width: ROUND_GAP,
                                             height: "100%",
                                             overflow: "visible",
                                             pointerEvents: "none",
                                         }}
+                                        aria-hidden="true"
                                     >
                                         {round.map((_, mIdx) => {
-                                            const nextMIdx   = Math.floor(mIdx / 2);
                                             const currTop    = (offsets[mIdx]         ?? 0) + 48;
-                                            const nextTop    = (nextOffsets[nextMIdx] ?? 0) + 48;
 
                                             const y1 = currTop + MATCH_H / 2;
 
-                                            const y2 = nextTop + MATCH_H / 2;
-
-                                            const xMid = STUB;
+                                            const xMid = ROUND_GAP / 2;
 
                                             const isEven = mIdx % 2 === 0;
 
@@ -256,6 +256,7 @@ export default function BracketPage() {
             <div style={adBottomBox}>
                 <AdSlot category="BracketBottom" />
             </div>
+            <style>{`.afk-bracket button:focus-visible, .afk-bracket [role="region"]:focus-visible { outline: 2px solid #6ab4ff; outline-offset: 3px; } .afk-bracket button:hover { filter: brightness(1.2); }`}</style>
         </div>
     );
 }
@@ -264,7 +265,8 @@ const wrap = {
     minHeight: "100vh",
     background: "linear-gradient(135deg, #080c13 0%, #0f1520 50%, #0a0e18 100%)",
     color: "#e8ecf2",
-    padding: "32px 24px 64px",
+    padding: "32px clamp(12px, 2vw, 40px) 64px",
+    minWidth: 0,
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
 };
 
@@ -296,7 +298,8 @@ const header = {
 
 const headerTitle = {
     margin: 0,
-    fontSize: 46,
+    fontSize: "clamp(26px, 4vw, 46px)",
+    overflowWrap: "anywhere",
     fontWeight: 800,
     background: "linear-gradient(135deg, #6ab4ff 0%, #4a9eff 60%, #8b5cf6 100%)",
     WebkitBackgroundClip: "text",
@@ -321,20 +324,22 @@ const bracketContainer = {
 
 const bracketTree = {
     position: "relative",
-    minWidth: "fit-content",
-    paddingLeft: 24,
-    paddingRight: 24,
+    display: "grid",
+    columnGap: ROUND_GAP,
+    width: "100%",
+    margin: "0 auto",
 };
 
 const roundColumn = {
-    position: "absolute",
+    position: "relative",
+    minWidth: 0,
 };
 
 const roundHeader = {
     position: "absolute",
     top: 0,
     left: 0,
-    width: MATCH_W,
+    width: "100%",
     fontSize: 11,
     fontWeight: 700,
     color: "#6ab4ff",
@@ -350,7 +355,7 @@ const roundHeader = {
 const matchWrapper = {
     display: "flex",
     flexDirection: "column",
-    gap: 6,
+    gap: 8,
 };
 
 const matchBox = {
@@ -361,6 +366,8 @@ const matchBox = {
     boxShadow: "0 4px 18px rgba(0,0,0,0.4)",
     transition: "border-color 0.3s ease, box-shadow 0.3s ease",
     height: MATCH_H,
+    boxSizing: "border-box",
+    flexShrink: 0,
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
@@ -413,13 +420,16 @@ const winButton = {
 
 const adminControls = {
     display: "flex",
-    gap: 5,
-    justifyContent: "flex-end",
-    marginTop: 4,
+    gap: 8,
+    height: 36,
 };
 
 const adminBtn = {
-    padding: "5px 9px",
+    padding: "8px 12px",
+    minHeight: 36,
+    flex: 1,
+    lineHeight: 1,
+    boxSizing: "border-box",
     background: "rgba(74, 158, 255, 0.08)",
     border: "1px solid rgba(74, 158, 255, 0.2)",
     borderRadius: 7,
