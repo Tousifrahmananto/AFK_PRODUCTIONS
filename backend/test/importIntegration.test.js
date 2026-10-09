@@ -106,3 +106,44 @@ test('private Google selection, OAuth state and Gmail deliveries use scoped encr
   assert.equal(JSON.stringify((await api('/google', admin)).data).includes('refresh-test'), false);
   global.fetch = nativeFetch;
 });
+
+test('double elimination and round robin expose resolved matches and protect completed brackets', async () => {
+  for (const format of ['Double Elimination', 'Round Robin']) {
+    await Tournament.updateOne({ _id: tournament._id }, { $set: { bracket: format, bracketData: null } });
+    const generated = await api(`/tournaments/${tournament._id}/generate-bracket`, admin, {});
+    assert.equal(generated.status, 200);
+    let bd = generated.data.bracketData;
+    const pending = bd.rounds.flat().find(m => m.status === 'pending');
+    if (pending) assert.equal((await api(`/tournaments/${tournament._id}/matches/${pending.id}/veto`, admin)).status, 409);
+    for (let r = 0; r < bd.rounds.length; r++) for (let m = 0; m < bd.rounds[r].length; m++) {
+      const match = bd.rounds[r][m];
+      if (match.status !== 'ready') continue;
+      assert.equal((await api(`/tournaments/${tournament._id}/matches/${match.id}/veto`, admin)).status, 200, `Ready match blocked: ${format} round ${r}`);
+      const updated = await api(`/tournaments/${tournament._id}/bracket/match-result`, admin, { roundIndex: r, matchIndex: m, winnerSide: 'p1' });
+      assert.equal(updated.status, 200, JSON.stringify(updated.data)); bd = updated.data.bracketData;
+    }
+    assert.equal((await api(`/tournaments/${tournament._id}/generate-bracket`, admin, {})).status, 409);
+    assert.equal((await api(`/tournaments/${tournament._id}/reset-bracket`, admin, {})).status, 409);
+    assert.equal(bd.rounds.flat().some(m => ['pending', 'ready'].includes(m.status)), false);
+  }
+});
+
+test('a batch resumes after 25 rows without duplicating accounts; private exports exclude expired credentials', async () => {
+  await Connection.deleteMany({});
+  const previousTournament = tournament;
+  tournament = await Tournament.create({ title: 'Chunked import cup', game: 'CS2', teamLimit: 30, startDate: '2050-10-20', endDate: '2050-10-21', registrationDeadline: '2050-10-19' });
+  const csv = 'Team,Captain,Email\n' + Array.from({ length: 27 }, (_, i) => `Chunk team ${i + 1},Captain ${i + 1},chunk${i + 1}@example.test`).join('\n');
+  const p = await preview(csv, { teamName: 0, captainName: 1, captainEmail: 2 }); assert.equal(p.status, 200);
+  const id = p.data.batch._id, path = `/tournament-imports/${id}/confirm`;
+  const decisions = Object.fromEntries(p.data.batch.rows.map(row => [row.index, { action: 'create' }]));
+  const first = await api(path, admin, { decisions }); assert.equal(first.status, 200);
+  assert.equal(first.data.batch.rows.filter(row => row.status === 'imported').length, 25);
+  const second = await api(path, admin, { decisions }); assert.equal(second.status, 200); assert.equal(second.data.credentials.length, 27);
+  assert.equal((await api(path, admin, { decisions })).data.credentials.length, 27);
+  const anotherAdmin = await User.create({ username: 'another-admin', email: 'second-admin@example.test', password: 'unused', role: 'Admin' });
+  assert.equal((await api(`/tournament-imports/${id}`, anotherAdmin)).status, 404);
+  await Credential.updateMany({ batch: id }, { $set: { expiresAt: new Date(Date.now() - 1000) } });
+  const download = await nativeFetch(base + `/api/tournament-imports/${id}/credentials.csv`, { headers: { Authorization: 'Bearer ' + sign(admin) } });
+  assert.equal(table(Buffer.from(await download.text())).length, 1);
+  tournament = previousTournament;
+});

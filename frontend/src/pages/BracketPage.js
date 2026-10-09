@@ -156,12 +156,12 @@ export default function BracketPage() {
                                         >
                                             <div style={{
                                                 ...matchBox,
-                                                borderColor: match?.winner ? "#2abb9b44" : "#2f3848",
+                                                borderColor: match?.winner ? "#9a9a9a44" : "#373737",
                                             }}>
                                                 <div style={{ ...playerSlot, ...(p1Won ? winnerSlot : {}) }}>
                                                     <span style={{
                                                         ...playerName,
-                                                        color: p1Won ? "#2abb9b" : !hasP1 ? "#4a5568" : "#e8ecf2",
+                                                        color: p1Won ? "#9a9a9a" : !hasP1 ? "#545454" : "#ececec",
                                                         fontStyle: !hasP1 ? "italic" : "normal",
                                                     }}>{p1}</span>
                                                     {isAdmin && !match?.winner && hasP1 && hasP2 && (!match.status || match.status === 'ready') && (
@@ -176,7 +176,7 @@ export default function BracketPage() {
                                                 <div style={{ ...playerSlot, ...(p2Won ? winnerSlot : {}) }}>
                                                     <span style={{
                                                         ...playerName,
-                                                        color: p2Won ? "#2abb9b" : !hasP2 ? "#4a5568" : "#e8ecf2",
+                                                        color: p2Won ? "#9a9a9a" : !hasP2 ? "#545454" : "#ececec",
                                                         fontStyle: !hasP2 ? "italic" : "normal",
                                                     }}>{p2}</span>
                                                     {isAdmin && !match?.winner && hasP2 && hasP1 && (!match.status || match.status === 'ready') && (
@@ -239,7 +239,7 @@ export default function BracketPage() {
                                             const yOdd   = oddTop + MATCH_H / 2;
 
                                             return (
-                                                <g key={mIdx} stroke="#3d4f6b" strokeWidth="2" fill="none">
+                                                <g key={mIdx} stroke="#4d4d4d" strokeWidth="2" fill="none">
                                                     <line x1={0} y1={y1} x2={xMid} y2={y1} />
 
                                                     {isEven && (
@@ -267,15 +267,15 @@ export default function BracketPage() {
             <div style={adBottomBox}>
                 <AdSlot category="BracketBottom" />
             </div>
-            <style>{`.afk-bracket button:focus-visible, .afk-bracket [role="region"]:focus-visible { outline: 2px solid #6ab4ff; outline-offset: 3px; } .afk-bracket button:hover { filter: brightness(1.2); }`}</style>
+            <style>{`.afk-bracket button:focus-visible, .afk-bracket [role="region"]:focus-visible { outline: 2px solid #aaaaaa; outline-offset: 3px; } .afk-bracket button:hover { filter: brightness(1.2); }`}</style>
         </div>
     );
 }
 
 const wrap = {
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #080c13 0%, #0f1520 50%, #0a0e18 100%)",
-    color: "#e8ecf2",
+    background: "linear-gradient(135deg, #0c0c0c 0%, #151515 50%, #0e0e0e 100%)",
+    color: "#ececec",
     padding: "32px clamp(12px, 2vw, 40px) 64px",
     minWidth: 0,
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -287,7 +287,7 @@ const loadingBox = {
     justifyContent: "center",
     height: "60vh",
     fontSize: 18,
-    color: "#6ab4ff",
+    color: "#aaaaaa",
     opacity: 0.7,
 };
 
@@ -297,14 +297,14 @@ const emptyBox = {
     justifyContent: "center",
     height: "60vh",
     fontSize: 18,
-    color: "#7a8599",
+    color: "#848484",
 };
 
 const header = {
     textAlign: "center",
     marginBottom: 48,
     paddingBottom: 24,
-    borderBottom: "1px solid #1e2535",
+    borderBottom: "1px solid #252525",
 };
 
 const headerTitle = {
@@ -312,7 +312,7 @@ const headerTitle = {
     fontSize: "clamp(26px, 4vw, 46px)",
     overflowWrap: "anywhere",
     fontWeight: 800,
-    background: "linear-gradient(135deg, #6ab4ff 0%, #4a9eff 60%, #8b5cf6 100%)",
+    background: "linear-gradient(135deg, #aaaaaa 0%, #939393 60%, #717171 100%)",
     WebkitBackgroundClip: "text",
     WebkitTextFillColor: "transparent",
     letterSpacing: "-1px",
@@ -321,7 +321,7 @@ const headerTitle = {
 const bracketLabel = {
     fontSize: 12,
     fontWeight: 700,
-    color: "#3d4f6b",
+    color: "#4d4d4d",
     letterSpacing: "4px",
     marginTop: 8,
 };
@@ -353,13 +353,13 @@ const roundHeader = {
     width: "100%",
     fontSize: 11,
     fontWeight: 700,
-    color: "#6ab4ff",
+    color: "#aaaaaa",
     textAlign: "center",
     letterSpacing: "2.5px",
     padding: "7px 12px",
-    background: "rgba(74, 158, 255, 0.07)",
+    background: "rgba(147,147,147, 0.07)",
     borderRadius: 8,
-    border: "1px solid rgba(74, 158, 255, 0.15)",
+    border: "1px solid rgba(147,147,147, 0.15)",
     boxSizing: "border-box",
 };
 
@@ -370,8 +370,8 @@ const matchWrapper = {
 };
 
 const matchBox = {
-    background: "linear-gradient(160deg, #141926 0%, #1b2233 100%)",
-    border: "1.5px solid #2f3848",
+    background: "linear-gradient(160deg, #191919 0%, #222222 100%)",
+    border: "1.5px solid #373737",
     borderRadius: 10,
     overflow: "hidden",
     boxShadow: "0 4px 18px rgba(0,0,0,0.4)",
@@ -395,8 +395,8 @@ const playerSlot = {
 };
 
 const winnerSlot = {
-    background: "linear-gradient(90deg, rgba(42,187,155,0.14) 0%, rgba(42,187,155,0.03) 100%)",
-    borderLeft: "3px solid #2abb9b",
+    background: "linear-gradient(90deg, rgba(154,154,154,0.14) 0%, rgba(154,154,154,0.03) 100%)",
+    borderLeft: "3px solid #9a9a9a",
 };
 
 const playerName = {
@@ -411,14 +411,14 @@ const playerName = {
 
 const divider = {
     height: 1,
-    background: "#1e2a3a",
+    background: "#292929",
     flexShrink: 0,
 };
 
 const winButton = {
     flexShrink: 0,
     padding: "3px 10px",
-    background: "linear-gradient(135deg, #2abb9b, #1e9b80)",
+    background: "linear-gradient(135deg, #9a9a9a, #7e7e7e)",
     color: "#fff",
     border: "none",
     borderRadius: 6,
@@ -441,13 +441,13 @@ const adminBtn = {
     flex: 1,
     lineHeight: 1,
     boxSizing: "border-box",
-    background: "rgba(74, 158, 255, 0.08)",
-    border: "1px solid rgba(74, 158, 255, 0.2)",
+    background: "rgba(147,147,147, 0.08)",
+    border: "1px solid rgba(147,147,147, 0.2)",
     borderRadius: 7,
     fontSize: 12,
     cursor: "pointer",
     transition: "background 0.15s ease",
-    color: "#6ab4ff",
+    color: "#aaaaaa",
     fontWeight: 500,
 };
 

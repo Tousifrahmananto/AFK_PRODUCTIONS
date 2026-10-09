@@ -61,7 +61,7 @@ async function createAccount(b, row, role, session) {
   const base = `${slug(row.data.teamName)}-${kind}`;
   let username = base, suffix = 1;
   while (await User.exists({ username }).session(session)) username = `${base}-${++suffix}`;
-  const password = crypto.randomBytes(18).toString('base64url');
+  const password = 'AFK-' + crypto.randomBytes(18).toString('base64url');
   const [user] = await User.create([{ name: row.data[kind + 'Name'], username, contactEmail: row.data[kind + 'Email'], password: await bcrypt.hash(password, 10), role, mustChangePassword: true }], { session });
   await Credential.create([{ batch: b._id, user: user._id, owner: b.owner, rowKey: row.key, teamName: row.data.teamName, login: username, role: kind, recipient: user.contactEmail, secret: encrypt(password), expiresAt: new Date(Date.now() + 7 * 86400000) }], { session });
   return user;
@@ -93,7 +93,6 @@ exports.confirm = endpoint(async (req, res) => {
         const t = await tournament(b.tournament, session);
         const previous = await Registration.findOne({ tournament: t._id, rowKey: row.key }).session(session);
         if (!previous) {
-          if (t.teams.length >= t.teamLimit) fail('Tournament team capacity reached', 409);
           let team;
           if (choice.action === 'link') {
             team = await Team.findOne({ _id: choice.teamId, status: 'active' }).session(session);
@@ -105,7 +104,10 @@ exports.confirm = endpoint(async (req, res) => {
             [team] = await Team.create([{ teamName: row.data.teamName, game: t.game, region: row.data.region, captain: captain._id, manager: manager?._id || null, members: [captain._id] }], { session });
             await User.updateMany({ _id: { $in: [captain._id, ...(manager ? [manager._id] : [])] } }, { $set: { team: team._id } }).session(session);
           }
-          if (!t.teams.some(id => String(id) === String(team._id))) { t.teams.push(team._id); await t.save({ session }); }
+          if (!t.teams.some(id => String(id) === String(team._id))) {
+            if (t.teams.length >= t.teamLimit) fail('Tournament team capacity reached', 409);
+            t.teams.push(team._id); await t.save({ session });
+          }
           await Registration.create([{ tournament: t._id, rowKey: row.key, team: team._id, batch: b._id }], { session });
           row.teamId = String(team._id);
         }

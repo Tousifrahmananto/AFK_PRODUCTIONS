@@ -14,7 +14,7 @@ function rows(values, mapping) {
   if (values.some(row => row.length > 200)) fail('Use at most 200 columns');
   const headers = values[0].map(String);
   for (const field of ['teamName', 'captainName']) if (!Number.isInteger(mapping[field]) || mapping[field] < 0 || mapping[field] >= headers.length) fail(`Map ${field}`);
-  const seen = new Set();
+  const seen = new Set(), teamNames = new Set();
   return values.slice(1).filter(row => row.some(cell => String(cell).trim())).map((row, index) => {
     const data = Object.fromEntries(fields.map(field => [field, Number.isInteger(mapping[field]) && mapping[field] >= 0 ? String(row[mapping[field]] || '').trim() : '']));
     data.captainEmail = (data.captainEmail || data.contactEmail).toLowerCase();
@@ -25,12 +25,11 @@ function rows(values, mapping) {
     if (Object.values(data).some(value => value.length > 254)) error = 'A field exceeds 254 characters';
     const email = value => /^[^\s@<>\r\n]+@[^\s@<>\r\n]+\.[^\s@<>\r\n]+$/.test(value);
     if (!email(data.captainEmail) || (data.managerName && !email(data.managerEmail))) error = 'A valid delivery email is required for each account';
-    if (!slug(data.teamName)) error = 'Team name needs at least one Latin letter or number for its login ID';
-    if (seen.has(key)) error = 'Duplicate registration in this snapshot';
-    seen.add(key);
+    if (seen.has(key) || teamNames.has(data.teamName.toLowerCase())) error = 'Duplicate team registration in this snapshot';
+    seen.add(key); teamNames.add(data.teamName.toLowerCase());
     return { index, key, data, status: error ? 'invalid' : 'new', error };
   });
 }
-function slug(value) { return value.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 45); }
+function slug(value) { return value.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 45) || 'team-' + hash(value).slice(0, 8); }
 function csvCell(value) { const text = String(value ?? ''); return '"' + (/^[\s]*[=+@-]/.test(text) ? "'" + text : text).replace(/"/g, '""') + '"'; }
 module.exports = { table, rows, hash, slug, csvCell };

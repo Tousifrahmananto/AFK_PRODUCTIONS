@@ -125,7 +125,7 @@ export default function CreateTournamentPage() {
     <div className="ctp-root">
       <style>{`
         .ctp-root {
-          background:#0f1115; color:#e8ecf2; min-height:100vh;
+          background:#111111; color:#ececec; min-height:100vh;
           padding:20px 10px 40px; display:flex; justify-content:center;
         }
         .ctp-container { width:100%; max-width:900px; min-width:0; }
@@ -136,23 +136,26 @@ export default function CreateTournamentPage() {
         form { display:grid; gap:14px; }
         .row-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
         @media(max-width:640px){ .row-2 { grid-template-columns:1fr; } }
-        label { font-size:13px; color:#9aa3b2; margin-bottom:4px; display:block; }
+        label { font-size:13px; color:#a2a2a2; margin-bottom:4px; display:block; }
         input, select, textarea {
           width:100%; padding:10px; border-radius:8px;
-          border:1px solid #2a2f3d; background:#11151d; color:#fff;
+          border:1px solid #2f2f2f; background:#151515; color:#fff;
           box-sizing:border-box; max-width:100%;
         }
         textarea { resize:vertical; min-height:80px; }
         .actions { display:flex; gap:10px; margin-top:8px; flex-wrap:wrap; }
-        .btn { border:0; border-radius:8px; padding:8px 14px; font-weight:600; cursor:pointer; }
-        .btn-primary { background:#eee; color:#111; }
-        .btn-secondary { background:#2b2f3b; color:#fff; }
-        .btn-danger { background:#b23b3b; color:#fff; }
-        .btn-warning { background:#b27b3b; color:#fff; }
-        .btn-success { background:#eee; color:#111; }
+        .ctp-root .btn { border:1px solid #555; border-radius:8px; padding:8px 14px; font-weight:600; cursor:pointer; background:#eee; color:#111; }
+        .ctp-root .btn:hover { background:#ccc; color:#111; }
+        .ctp-root .btn:disabled { opacity:.5; cursor:not-allowed; }
+        .ctp-root .btn:focus-visible { outline:2px solid #fff; outline-offset:3px; }
+        .ctp-root .btn-primary { background:#eee; color:#111; }
+        .ctp-root .btn-secondary { background:#2f2f2f; color:#fff; }
+        .ctp-root .btn-danger { background:#545454; color:#fff; }
+        .ctp-root .btn-warning { background:#828282; color:#fff; }
+        .ctp-root .btn-success { background:#eee; color:#111; }
         table { width:100%; border-collapse:collapse; }
-        th, td { padding:10px; border-bottom:1px solid #2a2f3d; font-size:14px; }
-        th { text-align:left; color:#9aa3b2; }
+        th, td { padding:10px; border-bottom:1px solid #2f2f2f; font-size:14px; }
+        th { text-align:left; color:#a2a2a2; }
       `}</style>
 
       <div className="ctp-container">

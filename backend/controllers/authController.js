@@ -80,14 +80,14 @@ const changePassword = async (req, res) => {
         if (!await bcrypt.compare(String(req.body.currentPassword || ''), user.password)) return res.status(401).json({ message: 'Current password is incorrect' });
         if (await bcrypt.compare(password, user.password)) return res.status(400).json({ message: 'Choose a different password' });
         const mongoose = require('mongoose');
+        let updated;
         await mongoose.connection.transaction(async session => {
-            const updated = await User.findOneAndUpdate({ _id: user._id, password: user.password }, { $set: { password: await bcrypt.hash(password, 10), mustChangePassword: false }, $inc: { authVersion: 1 } }, { new: true, session });
+            updated = await User.findOneAndUpdate({ _id: user._id, password: user.password }, { $set: { password: await bcrypt.hash(password, 10), mustChangePassword: false }, $inc: { authVersion: 1 } }, { new: true, session });
             if (!updated) throw Object.assign(new Error('Password already changed. Sign in again.'), { status: 409 });
             await require('../models/ProvisionedCredential').deleteMany({ user: user._id }).session(session);
-            user.password = updated.password; user.mustChangePassword = false; user.authVersion = updated.authVersion;
         });
-        const token = jwt.sign({ userId: user._id, role: user.role, authVersion: user.authVersion }, process.env.JWT_SECRET, { expiresIn: '7d' });
-        const safe = user.toObject(); delete safe.password;
+        const token = jwt.sign({ userId: updated._id, role: updated.role, authVersion: updated.authVersion }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        const safe = updated.toObject(); delete safe.password;
         res.json({ token, user: safe });
     } catch (error) { res.status(error.status || 500).json({ message: error.status ? error.message : 'Unable to change password' }); }
 };

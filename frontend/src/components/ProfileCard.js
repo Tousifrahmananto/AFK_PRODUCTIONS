@@ -9,7 +9,7 @@ export default function ProfileCard({ user, myTournaments = [] }) {
       <div style={styles.card}>
         <h2 style={styles.name}>{user.username || user.name}</h2>
 
-        <p><strong>Email:</strong> {user.email}</p>
+        {(user.email || user.contactEmail) && <p><strong>{user.email ? 'Email' : 'Delivery email'}:</strong> {user.email || user.contactEmail}</p>}
         <p><strong>Role:</strong> {user.role}</p>
         <p><strong>Country:</strong> {user.country || "N/A"}</p>
         <p><strong>Team:</strong> {teamName}</p>

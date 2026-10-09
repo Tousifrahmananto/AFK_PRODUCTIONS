@@ -1,7 +1,20 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { generate, result, hasResults } = require('../utils/brackets');
-const { table, rows, csvCell } = require('../utils/registrationRows');
+const { table, rows, csvCell, slug } = require('../utils/registrationRows');
+test('nine-team elimination has no padded matches and no team starts in the final', () => {
+  const participants = Array.from({ length: 9 }, (_, i) => ({ id: String(i), kind: 'team', label: `Team ${i}` }));
+  const single = generate(participants, 'Single Elimination');
+  assert.deepEqual(single.rounds.map(round => round.length), [1, 4, 2, 1]);
+  assert.equal(single.rounds.flat().some(m => m.status === 'bye' || m.winner), false);
+  assert.equal(single.rounds.at(-1)[0].p1, null);
+  assert.equal(single.rounds.at(-1)[0].p2, null);
+  const double = generate(participants, 'Double Elimination');
+  assert.equal(double.rounds.flat().length, 17);
+  assert.equal(double.rounds.flat().some(m => m.status === 'bye' || m.winner), false);
+  const ids = new Set(double.rounds.flat().map(m => m.id));
+  for (const match of double.rounds.flat()) for (const feed of Object.values(match.feeds)) assert.ok(ids.has(feed.matchId));
+});
 for (const format of ['Single Elimination', 'Double Elimination', 'Round Robin']) for (const count of [2, 3, 8, 9, 16]) for (const reset of format === 'Double Elimination' ? [false, true] : [false]) {
   test(`${format}: ${count} teams${reset ? ', final reset' : ''}`, () => {
     const bd = generate(Array.from({ length: count }, (_, i) => ({ id: String(i + 1), kind: 'team', label: `Team ${i + 1}` })), format);
@@ -32,4 +45,5 @@ test('CSV handles quotes, BOM, duplicate rows, fallback recipients and formula-s
   assert.equal(result[0].status, 'new'); assert.equal(result[1].status, 'invalid'); assert.equal(result[2].status, 'invalid');
   assert.equal(csvCell('=HYPERLINK("x")'), '"\'=HYPERLINK(""x"")"');
   assert.throws(() => rows(values, { teamName: -1, captainName: 1 }));
+  assert.match(slug('বাংলা'), /^team-[a-f0-9]{8}$/);
 });
